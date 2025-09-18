@@ -5,7 +5,7 @@ import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, P
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getGroqResponse } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -13,6 +13,15 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, S
 import { useAuth } from '@/hooks/use-auth';
 import { signInWithGoogle, signOut } from '@/app/auth';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 type Message = {
   role: 'user' | 'assistant';
@@ -128,10 +137,34 @@ export default function GroqChatPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <Settings />
-                Settings
-              </SidebarMenuButton>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton disabled={!user}>
+                    <Settings />
+                    Settings
+                  </SidebarMenuButton>
+                </DialogTrigger>
+                {user && (
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>User Profile</DialogTitle>
+                      <DialogDescription>
+                        This is your user profile information.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center gap-4 py-4">
+                      <Avatar className="h-20 w-20">
+                        <AvatarImage src={user.photoURL || undefined} />
+                        <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1">
+                        <p className="text-lg font-semibold">{user.displayName}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                )}
+              </Dialog>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
