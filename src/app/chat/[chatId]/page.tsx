@@ -524,10 +524,9 @@ function PageContent({ chatId }: { chatId: string }) {
 }
 
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
-  const resolvedParams = use(params);
   return (
     <SidebarProvider>
-      <PageContent chatId={resolvedParams.chatId} />
+      <PageContent chatId={params.chatId} />
     </SidebarProvider>
   );
 }
