@@ -43,6 +43,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 type Message = {
   role: 'user' | 'assistant';
@@ -106,7 +109,7 @@ function WelcomeAnimation() {
   );
 }
 
-function MenuItems() {
+function SidebarItems() {
   const { isOpen } = useSidebar();
   const { user, loading } = useAuth();
   const { toast } = useToast();
@@ -165,42 +168,51 @@ function MenuItems() {
 
   return (
     <>
-      {links.map((item) => (
-        <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton onClick={item.onClick} asChild={!item.onClick} tooltip={item.title}>
-            {item.href ? (
-              <a href={item.href}>
-                <item.icon />
-                {isOpen && <span>{item.title}</span>}
-              </a>
-            ) : (
-              <>
-                <item.icon />
-                {isOpen && <span>{item.title}</span>}
-              </>
-            )}
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
-      <SidebarMenuItem>
-        <Dialog>
-          <DialogTrigger asChild>
-            <SidebarMenuButton tooltip="Settings">
-              <Settings />
-              {isOpen && <span>Settings</span>}
-            </SidebarMenuButton>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Settings</DialogTitle>
-              <DialogDescription>
-                Manage your application settings.
-              </DialogDescription>
-            </DialogHeader>
-            <SettingsDialogContent />
-          </DialogContent>
-        </Dialog>
-      </SidebarMenuItem>
+      <SidebarGroup>
+        <SidebarGroupLabel>
+          <Logo isOpen={isOpen}/>
+        </SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {links.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton onClick={item.onClick} asChild={!item.onClick} tooltip={item.title}>
+                  {item.href ? (
+                    <a href={item.href}>
+                      <item.icon />
+                      {isOpen && <span>{item.title}</span>}
+                    </a>
+                  ) : (
+                    <>
+                      <item.icon />
+                      {isOpen && <span>{item.title}</span>}
+                    </>
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+            <SidebarMenuItem>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton tooltip="Settings">
+                    <Settings />
+                    {isOpen && <span>Settings</span>}
+                  </SidebarMenuButton>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Settings</DialogTitle>
+                    <DialogDescription>
+                      Manage your application settings.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <SettingsDialogContent />
+                </DialogContent>
+              </Dialog>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
       <SidebarFooter>
         <SidebarGroup>
           {loading ? (
@@ -295,7 +307,8 @@ function PageContent() {
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { isOpen } = useSidebar();
+  const isMobile = useIsMobile();
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -304,6 +317,12 @@ function PageContent() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileSidebarOpen(false);
+    }
+  }, [isMobile])
 
   const handleSendMessage = (message: string, files?: File[]) => {
     if (!message.trim() && (!files || files.length === 0)) return;
@@ -332,24 +351,34 @@ function PageContent() {
   
   return (
     <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden")}>
-      <Sidebar>
+      <Sidebar className="hidden md:flex">
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>
-              <Logo isOpen={isOpen}/>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <MenuItems />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarItems />
         </SidebarContent>
       </Sidebar>
 
       <main className="flex flex-col flex-1 h-screen bg-background">
         <header className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
-          <SidebarTrigger className="h-5 w-5" />
+          {isMobile ? (
+            <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <SidebarTrigger className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-60">
+                <SidebarProvider initialState={true}>
+                  <Sidebar className="flex w-full">
+                    <SidebarContent>
+                      <SidebarItems />
+                    </SidebarContent>
+                  </Sidebar>
+                </SidebarProvider>
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <SidebarTrigger className="h-5 w-5" />
+          )}
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold font-headline">DeciMind</h1>
           </div>
@@ -440,5 +469,7 @@ export default function DeciMindPage() {
     </SidebarProvider>
   );
 }
+
+    
 
     

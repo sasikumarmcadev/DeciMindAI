@@ -58,7 +58,7 @@ const Sidebar = React.forwardRef<
     <aside
       ref={ref}
       className={cn(
-        "relative hidden h-full shrink-0 flex-col justify-between border-r bg-background transition-[width] duration-300 md:flex",
+        "relative h-full shrink-0 flex-col justify-between border-r bg-background transition-[width] duration-300",
         isOpen ? "w-60" : "w-[70px]",
         className
       )}
@@ -102,7 +102,7 @@ const SidebarGroupLabel = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "px-4 text-sm font-medium uppercase text-muted-foreground",
+        "px-4 text-sm font-medium uppercase text-muted-foreground flex items-center",
         !isOpen && "text-center",
         className
       )}
@@ -228,3 +228,5 @@ export {
   SidebarFooter,
   SidebarTrigger,
 }
+
+    
