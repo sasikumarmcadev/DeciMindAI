@@ -193,7 +193,13 @@ export const SidebarLink = ({
         {link.label}
       </motion.span>
       {open && action && (
-        <div className="absolute right-0">
+        <div className="absolute right-0" onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (typeof action === 'object' && action !== null && 'props' in action && typeof (action as any).props.onClick === 'function') {
+            (action as any).props.onClick();
+          }
+        }}>
           {action}
         </div>
       )}
