@@ -309,7 +309,7 @@ function PageContent() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { isOpen, setIsOpen } = useSidebar();
+  const { isOpen } = useSidebar();
 
 
   const scrollToBottom = () => {
