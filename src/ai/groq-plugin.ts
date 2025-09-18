@@ -98,7 +98,7 @@ export function groqModel(
   );
 }
 
-export const groq = (config: GroqConfig) => {
+export const groq = (config: GroqConfig = {}) => {
   const apiKey = config.apiKey || process.env.GROQ_API_KEY;
   if (!apiKey) {
     throw new Error(
