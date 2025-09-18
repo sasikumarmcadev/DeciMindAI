@@ -224,19 +224,19 @@ function SidebarItems() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="w-full justify-between gap-3 h-12">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 overflow-hidden">
                     <Avatar className="h-7 w-7">
                       <AvatarImage src={user.photoURL || undefined} />
                       <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     {isOpen && (
-                      <div className="flex flex-col items-start">
-                        <span className="text-sm font-medium">{user.displayName}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                      <div className="flex flex-col items-start overflow-hidden">
+                        <span className="text-sm font-medium truncate">{user.displayName}</span>
+                        <span className="text-xs text-muted-foreground truncate">{user.email}</span>
                       </div>
                     )}
                   </div>
-                  {isOpen && <ChevronsUpDown className="h-5 w-5" />}
+                  {isOpen && <ChevronsUpDown className="h-5 w-5 flex-shrink-0" />}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -379,7 +379,9 @@ function PageContent() {
               </SheetContent>
             </Sheet>
           ) : (
-            <SidebarTrigger className="h-5 w-5" />
+             <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+              <SidebarTrigger className="h-5 w-5" />
+            </Button>
           )}
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold font-headline">DeciMind</h1>
