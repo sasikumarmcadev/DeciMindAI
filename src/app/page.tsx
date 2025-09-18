@@ -88,6 +88,9 @@ export default function GroqChatPage() {
     const { error } = await signInWithGoogle();
     if (error) {
       console.error("Error signing in with Google:", error);
+      if (error.includes('auth/popup-closed-by-user')) {
+        return; // User closed the popup, so we don't show an error.
+      }
       if (error.includes('auth/configuration-not-found')) {
         toast({
           title: 'Login Failed',
