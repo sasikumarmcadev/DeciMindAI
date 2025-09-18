@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn } from 'lucide-react';
+import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useTheme } from 'next-themes';
 
 
 type Message = {
@@ -40,6 +41,7 @@ export default function GroqChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, loading } = useAuth();
   const { toast } = useToast();
+  const { setTheme } = useTheme();
 
 
   const scrollToBottom = () => {
@@ -147,19 +149,34 @@ export default function GroqChatPage() {
                 {user && (
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>User Profile</DialogTitle>
+                      <DialogTitle>Settings</DialogTitle>
                       <DialogDescription>
-                        This is your user profile information.
+                        Manage your application settings.
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="flex items-center gap-4 py-4">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src={user.photoURL || undefined} />
-                        <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <p className="text-lg font-semibold">{user.displayName}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <div className="py-4 space-y-6">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                          <AvatarImage src={user.photoURL || undefined} />
+                          <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                          <p className="text-lg font-semibold">{user.displayName}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-md font-medium">Theme</h3>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
+                            <Sun className="h-5 w-5" />
+                            <span className="sr-only">Light mode</span>
+                          </Button>
+                          <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
+                            <Moon className="h-5 w-5" />
+                            <span className="sr-only">Dark mode</span>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </DialogContent>
