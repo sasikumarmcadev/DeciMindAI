@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon } from 'lucide-react';
+import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon, Globe, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,12 +22,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useTheme } from 'next-themes';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
+
+type ChatMode = 'chat' | 'web';
 
 function AssistantMessage({ content }: { content: string }) {
   const displayedContent = useTypewriter(content, 20);
@@ -37,6 +40,7 @@ function AssistantMessage({ content }: { content: string }) {
 export default function DeciMindPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [mode, setMode] = useState<ChatMode>('chat');
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, loading } = useAuth();
@@ -299,6 +303,25 @@ export default function DeciMindPage() {
             <Card className="max-w-3xl mx-auto">
               <CardContent className="p-2">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                   <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="flex items-center gap-2">
+                        {mode === 'web' ? <Globe className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
+                        <span className="capitalize">{mode === 'web' ? 'Web Search' : 'Chat'}</span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => setMode('chat')}>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        <span>Chat</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setMode('web')}>
+                        <Globe className="mr-2 h-4 w-4" />
+                        <span>Web Search</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Textarea
                     value={input}
                     onChange={e => setInput(e.target.value)}
