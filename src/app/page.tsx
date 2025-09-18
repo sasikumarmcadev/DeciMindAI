@@ -1,13 +1,25 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
-import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
+import { 
+  Sidebar,
+  SidebarProvider,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarTrigger,
+} from "@/components/blocks/sidebar"
 import { useAuth } from '@/hooks/use-auth';
 import { signInWithGoogle, signOut } from '@/app/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -21,11 +33,18 @@ import {
 } from "@/components/ui/dialog"
 import { useTheme } from 'next-themes';
 import { PromptInputBox } from '@/components/ui/ai-prompt-box';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type Message = {
   role: 'user' | 'assistant';
@@ -39,8 +58,7 @@ function AssistantMessage({ content }: { content: string }) {
 
 export const Logo = () => {
   return (
-    <Link
-      href="#"
+    <div
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
       <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
@@ -51,20 +69,10 @@ export const Logo = () => {
       >
         DeciMind
       </motion.span>
-    </Link>
+    </div>
   );
 };
 
-export const LogoIcon = () => {
-  return (
-    <Link
-      href="#"
-      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
-    >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
-    </Link>
-  );
-};
 
 function WelcomeAnimation() {
   return (
@@ -107,30 +115,17 @@ export default function DeciMindPage() {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const { setTheme } = useTheme();
-  const [open, setOpen] = useState(false);
 
   const links = [
     {
-      label: "New Chat",
-      href: "#",
-      icon: (
-        <Plus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-      ),
+      title: "New Chat",
       onClick: () => handleNewChat(),
+      icon: Plus,
     },
     {
-      label: "Chat",
+      title: "Chat",
       href: "#",
-      icon: (
-        <MessageSquare className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-      ),
-    },
-    {
-      label: "Settings",
-      href: "#",
-      icon: (
-        <Settings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-      ),
+      icon: MessageSquare,
     },
   ];
 
@@ -206,209 +201,216 @@ export default function DeciMindPage() {
   };
 
   return (
-    <div
-      className={cn(
-        "rounded-md flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden",
-        "h-screen"
-      )}
-    >
-      <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-10">
-          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-            {open ? <Logo /> : <LogoIcon />}
-            <div className="mt-8 flex flex-col gap-2">
-              {links.map((link, idx) => {
-                if (link.label === "Settings") {
-                  return (
-                     <Dialog key={idx}>
-                        <DialogTrigger asChild>
-                           <button className="flex items-center justify-start gap-2 group/sidebar py-2 w-full">
-                            {link.icon}
-                            <motion.span
-                              animate={{
-                                display: open ? "inline-block" : "none",
-                                opacity: open ? 1 : 0,
-                              }}
-                              className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
-                            >
-                              {link.label}
-                            </motion.span>
-                           </button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Settings</DialogTitle>
-                            <DialogDescription>
-                              Manage your application settings.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="py-4 space-y-6">
-                            {user ? (
-                              <div className="flex items-center gap-4">
-                                <Avatar className="h-20 w-20">
-                                  <AvatarImage src={user.photoURL || undefined} />
-                                  <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="space-y-1">
-                                  <p className="text-lg font-semibold">{user.displayName}</p>
-                                  <p className="text-sm text-muted-foreground">{user.email}</p>
+    <SidebarProvider>
+      <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden")}>
+        <Sidebar>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="flex items-center">
+                <Logo />
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {links.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton onClick={item.onClick} asChild={!item.onClick} tooltip={item.title}>
+                        {item.href ? (
+                           <a href={item.href}>
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </a>
+                        ) : (
+                          <>
+                            <item.icon />
+                            <span>{item.title}</span>
+                          </>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                   <SidebarMenuItem>
+                      <Dialog>
+                          <DialogTrigger asChild>
+                            <SidebarMenuButton tooltip="Settings">
+                              <Settings/>
+                              <span>Settings</span>
+                            </SidebarMenuButton>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Settings</DialogTitle>
+                              <DialogDescription>
+                                Manage your application settings.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4 space-y-6">
+                              {user ? (
+                                <div className="flex items-center gap-4">
+                                  <Avatar className="h-20 w-20">
+                                    <AvatarImage src={user.photoURL || undefined} />
+                                    <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="space-y-1">
+                                    <p className="text-lg font-semibold">{user.displayName}</p>
+                                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-4">
-                                <Avatar className="h-20 w-20">
-                                  <AvatarFallback><User /></AvatarFallback>
-                                </Avatar>
-                                <div className="space-y-1">
-                                  <p className="text-lg font-semibold">Guest User</p>
+                              ) : (
+                                <div className="flex items-center gap-4">
+                                  <Avatar className="h-20 w-20">
+                                    <AvatarFallback><User /></AvatarFallback>
+                                  </Avatar>
+                                  <div className="space-y-1">
+                                    <p className="text-lg font-semibold">Guest User</p>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                            <div className="space-y-2">
-                              <h3 className="text-md font-medium">Theme</h3>
-                              <div className="flex items-center gap-2">
-                                <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
-                                  <Sun className="h-5 w-5" />
-                                  <span className="sr-only">Light mode</span>
-                                </Button>
-                                <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
-                                  <Moon className="h-5 w-5" />
-                                  <span className="sr-only">Dark mode</span>
-                                </Button>
+                              )}
+                              <div className="space-y-2">
+                                <h3 className="text-md font-medium">Theme</h3>
+                                <div className="flex items-center gap-2">
+                                  <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
+                                    <Sun className="h-5 w-5" />
+                                    <span className="sr-only">Light mode</span>
+                                  </Button>
+                                  <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
+                                    <Moon className="h-5 w-5" />
+                                    <span className="sr-only">Dark mode</span>
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                  )
-                }
-                return (
-                  <SidebarLink key={idx} link={link} onClick={link.onClick} />
-                )
-              })}
-            </div>
-          </div>
-           <div>
-            {loading ? (
-              <div className="flex items-center gap-2 p-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Loading...</span>
-              </div>
-            ) : user ? (
-              <SidebarLink
-                link={{
-                  label: user.displayName || "User",
-                  href: "#",
-                  icon: (
-                    <Image
-                      src={user.photoURL || "https://assets.aceternity.com/manu.png"}
-                      className="h-7 w-7 flex-shrink-0 rounded-full"
-                      width={50}
-                      height={50}
-                      alt="Avatar"
-                    />
-                  ),
-                }}
-                action={<LogOut className="h-5 w-5 text-neutral-700 dark:text-neutral-200 cursor-pointer" onClick={handleLogout}/>}
-              />
-            ) : (
-               <SidebarLink
-                onClick={handleLogin}
-                link={{
-                  label: "Login with Google",
-                  href: "#",
-                  icon: (
-                    <LogIn className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-                  ),
-                }}
-              />
-            )}
-          </div>
-        </SidebarBody>
-      </Sidebar>
-      
-      <div className="flex flex-col flex-1 h-screen bg-background">
-        <header className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
-          <div></div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold font-headline">DeciMind</h1>
-          </div>
-          <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
-            <Trash2 className="h-5 w-5" />
-          </Button>
-        </header>
+                          </DialogContent>
+                        </Dialog>
+                   </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-        {messages.length === 0 && !isPending && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <WelcomeAnimation />
-          </div>
-        )}
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex items-start gap-4 ${
-                msg.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              {msg.role === 'assistant' && (
-                <Avatar className="h-9 w-9 border">
-                  <AvatarFallback>
-                    <Bot className="h-5 w-5 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
+          <SidebarFooter>
+            <SidebarGroup>
+              {loading ? (
+                 <SidebarMenuButton className="w-full justify-start gap-3 h-12">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm font-medium">Loading...</span>
+                </SidebarMenuButton>
+              ) : user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton className="w-full justify-between gap-3 h-12">
+                      <div className="flex items-center gap-2">
+                         <Avatar className="h-7 w-7">
+                            <AvatarImage src={user.photoURL || undefined} />
+                            <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        <div className="flex flex-col items-start">
+                          <span className="text-sm font-medium">{user.displayName}</span>
+                          <span className="text-xs text-muted-foreground">{user.email}</span>
+                        </div>
+                      </div>
+                      <ChevronsUpDown className="h-5 w-5" />
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <SidebarMenuButton className="w-full justify-start gap-3 h-12" onClick={handleLogin}>
+                  <LogIn className="h-5 w-5" />
+                  <span className="text-sm font-medium">Login with Google</span>
+                </SidebarMenuButton>
               )}
+            </SidebarGroup>
+          </SidebarFooter>
+        </Sidebar>
+
+        <main className="flex flex-col flex-1 h-screen bg-background">
+          <header className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
+            <SidebarTrigger className="h-5 w-5" />
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold font-headline">DeciMind</h1>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </header>
+
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+          {messages.length === 0 && !isPending && (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <WelcomeAnimation />
+            </div>
+          )}
+            {messages.map((msg, index) => (
               <div
-                className={`max-w-xl w-full rounded-xl p-4 shadow-sm ${
-                  msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border'
+                key={index}
+                className={`flex items-start gap-4 ${
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                {msg.role === 'assistant' ? (
-                  <AssistantMessage content={msg.content} />
-                ) : (
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                {msg.role === 'assistant' && (
+                  <Avatar className="h-9 w-9 border">
+                    <AvatarFallback>
+                      <Bot className="h-5 w-5 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <div
+                  className={`max-w-xl w-full rounded-xl p-4 shadow-sm ${
+                    msg.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card border'
+                  }`}
+                >
+                  {msg.role === 'assistant' ? (
+                    <AssistantMessage content={msg.content} />
+                  ) : (
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  )}
+                </div>
+                {msg.role === 'user' && (
+                  <Avatar className="h-9 w-9 border">
+                      <AvatarImage src={user?.photoURL || undefined} />
+                    <AvatarFallback>
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
                 )}
               </div>
-              {msg.role === 'user' && (
-                <Avatar className="h-9 w-9 border">
-                    <AvatarImage src={user?.photoURL || undefined} />
-                  <AvatarFallback>
-                    <User className="h-5 w-5 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
-          ))}
-            {isPending && (
-              <div className="flex items-start gap-4 justify-start">
-                <Avatar className="h-9 w-9 border">
-                  <AvatarFallback>
-                    <Bot className="h-5 w-5 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border">
-                  <div className="bouncing-loader">
-                    <div></div>
-                    <div></div>
-                    <div></div>
+            ))}
+              {isPending && (
+                <div className="flex items-start gap-4 justify-start">
+                  <Avatar className="h-9 w-9 border">
+                    <AvatarFallback>
+                      <Bot className="h-5 w-5 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border">
+                    <div className="bouncing-loader">
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          <div ref={messagesEndRef} />
-        </main>
+              )}
+            <div ref={messagesEndRef} />
+          </main>
 
-        <footer className="p-4 bg-transparent w-full max-w-3xl mx-auto">
-          <PromptInputBox
-            onSend={handleSendMessage}
-            isLoading={isPending}
-            placeholder="Message DeciMind..."
-            className="bg-black"
-          />
-        </footer>
+          <footer className="p-4 bg-transparent w-full max-w-3xl mx-auto">
+            <PromptInputBox
+              onSend={handleSendMessage}
+              isLoading={isPending}
+              placeholder="Message DeciMind..."
+              className="bg-black"
+            />
+          </footer>
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

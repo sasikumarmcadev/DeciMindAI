@@ -1,7 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Provider as BalancerProvider } from 'react-wrap-balancer';
@@ -33,9 +32,7 @@ export default function RootLayout({
         >
           <BalancerProvider>
             <AuthProvider>
-              <SidebarProvider>
                 {children}
-              </SidebarProvider>
             </AuthProvider>
           </BalancerProvider>
           <Toaster />
