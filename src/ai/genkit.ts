@@ -8,6 +8,5 @@ export const ai = genkit({
       baseUrl: 'https://api.groq.com/openai/v1',
     }),
   ],
-  model: 'llama3-70b-8192',
   logLevel: 'debug',
 });

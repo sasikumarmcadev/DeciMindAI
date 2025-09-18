@@ -34,7 +34,7 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 export async function chat(input: ChatInput): Promise<ChatOutput> {
   const llmResponse = await ai.generate({
-    model: ai.model,
+    model: 'llama3-8b-8192',
     prompt: input.message,
     history: input.chatHistory,
     config: {
