@@ -4,8 +4,8 @@ import {
   ModelAction,
   ModelDefinition,
   Part,
+  defineModel,
 } from 'genkit';
-import * as genkit from 'genkit';
 import Groq from 'groq-sdk';
 import { z } from 'zod';
 
@@ -81,7 +81,7 @@ export function groqModel(
     };
   };
 
-  return genkit.defineModel(
+  return defineModel(
     {
       name: `groq/${name}`,
       label: `Groq - ${name}`,
