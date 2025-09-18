@@ -120,37 +120,39 @@ function SidebarItems() {
   };
 
   const handleLogin = async () => {
-    const { error } = await signInWithGoogle();
+    const { user, error } = await signInWithGoogle();
     if (error) {
       if (error.includes('auth/popup-closed-by-user')) {
         return;
       }
       console.error("Error signing in with Google:", error);
-      if (error.includes('auth/configuration-not-found')) {
+      toast({
+        title: 'Login Failed',
+        description: error,
+        variant: 'destructive',
+      });
+    } else if (user) {
         toast({
-          title: 'Login Failed',
-          description: 'Google Sign-In is not enabled for this project. Please enable it in the Firebase console.',
-          variant: 'destructive',
+            title: 'Login Successful',
+            description: `Welcome, ${user.displayName}!`,
         });
-      } else if (error.includes('auth/unauthorized-domain')) {
-        toast({
-          title: 'Login Failed',
-          description: 'This domain is not authorized for authentication. Please add it to the authorized domains in the Firebase console.',
-          variant: 'destructive',
-        });
-      }
-      else {
-        toast({
-          title: 'Login Failed',
-          description: error,
-          variant: 'destructive',
-        });
-      }
     }
   };
 
   const handleLogout = async () => {
-    await signOut();
+    const { success, error } = await signOut();
+    if (success) {
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+    } else if (error) {
+      toast({
+        title: 'Logout Failed',
+        description: error,
+        variant: 'destructive',
+      });
+    }
   };
 
   const links = [
