@@ -215,6 +215,7 @@ const SidebarTrigger = React.forwardRef<
 SidebarTrigger.displayName = "SidebarTrigger"
 
 export {
+  useSidebar,
   Sidebar,
   SidebarProvider,
   SidebarContent,

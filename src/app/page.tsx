@@ -45,6 +45,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useSidebar } from '@/components/blocks/sidebar';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -86,7 +87,7 @@ function WelcomeAnimation() {
           stiffness: 200,
           damping: 25,
         }}
-        containerClassName="text-2xl md:text-3xl lg:text-4xl leading-tight"
+        containerClassName="text-xl md:text-2xl lg:text-3xl leading-tight"
       >
         {"Welcome to DeciMind"}
       </VerticalCutReveal>
@@ -100,7 +101,7 @@ function WelcomeAnimation() {
           damping: 25,
           delay: 0.7,
         }}
-        containerClassName="mt-4 text-base md:text-lg lg:text-xl text-foreground/80 max-w-2xl"
+        containerClassName="mt-4 text-sm md:text-base lg:text-lg text-foreground/80 max-w-2xl"
       >
         {"I'm your advanced AI assistant, ready to help with questions, creative tasks, and more. How can I assist you today?"}
       </VerticalCutReveal>
@@ -108,62 +109,14 @@ function WelcomeAnimation() {
   );
 }
 
-export default function DeciMindPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isPending, startTransition] = useTransition();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+function MenuItems() {
+  const { isOpen } = useSidebar();
   const { user, loading } = useAuth();
   const { toast } = useToast();
-  const { setTheme } = useTheme();
-
-  const links = [
-    {
-      title: "New Chat",
-      onClick: () => handleNewChat(),
-      icon: Plus,
-    },
-    {
-      title: "Chat",
-      href: "#",
-      icon: MessageSquare,
-    },
-  ];
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = (message: string, files?: File[]) => {
-    if (!message.trim() && (!files || files.length === 0)) return;
-
-    const newMessages: Message[] = [...messages, { role: 'user', content: message }];
-    setMessages(newMessages);
-
-    startTransition(async () => {
-      const chatHistory = newMessages.filter(m => m.role !== 'user' || m.content !== message);
-      const result = await getDeciMindResponse(chatHistory, message);
-
-      if (result.response) {
-        setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
-      } else {
-        setMessages(prev => [
-          ...prev,
-          { role: 'assistant', content: result.error || 'Sorry, something went wrong.' },
-        ]);
-      }
-    });
-  };
-  
-  const handleClear = () => {
-    setMessages([]);
-  }
 
   const handleNewChat = () => {
-    setMessages([]);
+    // Implement new chat functionality
+    console.log("New Chat");
   };
 
   const handleLogin = async () => {
@@ -200,132 +153,202 @@ export default function DeciMindPage() {
     await signOut();
   };
 
+  const links = [
+    {
+      title: "New Chat",
+      onClick: () => handleNewChat(),
+      icon: Plus,
+    },
+    {
+      title: "Chat",
+      href: "#",
+      icon: MessageSquare,
+    },
+  ];
+
+  return (
+    <>
+      {links.map((item) => (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton onClick={item.onClick} asChild={!item.onClick} tooltip={item.title}>
+            {item.href ? (
+              <a href={item.href}>
+                <item.icon />
+                {isOpen && <span>{item.title}</span>}
+              </a>
+            ) : (
+              <>
+                <item.icon />
+                {isOpen && <span>{item.title}</span>}
+              </>
+            )}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+      <SidebarMenuItem>
+        <Dialog>
+          <DialogTrigger asChild>
+            <SidebarMenuButton tooltip="Settings">
+              <Settings />
+              {isOpen && <span>Settings</span>}
+            </SidebarMenuButton>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Settings</DialogTitle>
+              <DialogDescription>
+                Manage your application settings.
+              </DialogDescription>
+            </DialogHeader>
+            <SettingsDialogContent />
+          </DialogContent>
+        </Dialog>
+      </SidebarMenuItem>
+      <SidebarFooter>
+        <SidebarGroup>
+          {loading ? (
+            <SidebarMenuButton className="w-full justify-start gap-3 h-12">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              {isOpen && <span className="text-sm font-medium">Loading...</span>}
+            </SidebarMenuButton>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton className="w-full justify-between gap-3 h-12">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={user.photoURL || undefined} />
+                      <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {isOpen && (
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium">{user.displayName}</span>
+                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                      </div>
+                    )}
+                  </div>
+                  {isOpen && <ChevronsUpDown className="h-5 w-5" />}
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <SidebarMenuButton className="w-full justify-start gap-3 h-12" onClick={handleLogin}>
+              <LogIn className="h-5 w-5" />
+              {isOpen && <span className="text-sm font-medium">Login with Google</span>}
+            </SidebarMenuButton>
+          )}
+        </SidebarGroup>
+      </SidebarFooter>
+    </>
+  );
+}
+
+function SettingsDialogContent() {
+  const { user } = useAuth();
+  const { setTheme } = useTheme();
+
+  return (
+    <div className="py-4 space-y-6">
+      {user ? (
+        <div className="flex items-center gap-4">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={user.photoURL || undefined} />
+            <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">{user.displayName}</p>
+            <p className="text-sm text-muted-foreground">{user.email}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-4">
+          <Avatar className="h-20 w-20">
+            <AvatarFallback><User /></AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">Guest User</p>
+          </div>
+        </div>
+      )}
+      <div className="space-y-2">
+        <h3 className="text-md font-medium">Theme</h3>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
+            <Sun className="h-5 w-5" />
+            <span className="sr-only">Light mode</span>
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
+            <Moon className="h-5 w-5" />
+            <span className="sr-only">Dark mode</span>
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+export default function DeciMindPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isPending, startTransition] = useTransition();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = (message: string, files?: File[]) => {
+    if (!message.trim() && (!files || files.length === 0)) return;
+
+    const newMessages: Message[] = [...messages, { role: 'user', content: message }];
+    setMessages(newMessages);
+
+    startTransition(async () => {
+      const chatHistory = newMessages.filter(m => m.role !== 'user' || m.content !== message);
+      const result = await getDeciMindResponse(chatHistory, message);
+
+      if (result.response) {
+        setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
+      } else {
+        setMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: result.error || 'Sorry, something went wrong.' },
+        ]);
+      }
+    });
+  };
+  
+  const handleClear = () => {
+    setMessages([]);
+  }
+
   return (
     <SidebarProvider>
       <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden")}>
         <Sidebar>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className="flex items-center">
+              <SidebarGroupLabel>
                 <Logo />
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {links.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton onClick={item.onClick} asChild={!item.onClick} tooltip={item.title}>
-                        {item.href ? (
-                           <a href={item.href}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </a>
-                        ) : (
-                          <>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </>
-                        )}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                   <SidebarMenuItem>
-                      <Dialog>
-                          <DialogTrigger asChild>
-                            <SidebarMenuButton tooltip="Settings">
-                              <Settings/>
-                              <span>Settings</span>
-                            </SidebarMenuButton>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Settings</DialogTitle>
-                              <DialogDescription>
-                                Manage your application settings.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4 space-y-6">
-                              {user ? (
-                                <div className="flex items-center gap-4">
-                                  <Avatar className="h-20 w-20">
-                                    <AvatarImage src={user.photoURL || undefined} />
-                                    <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div className="space-y-1">
-                                    <p className="text-lg font-semibold">{user.displayName}</p>
-                                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-4">
-                                  <Avatar className="h-20 w-20">
-                                    <AvatarFallback><User /></AvatarFallback>
-                                  </Avatar>
-                                  <div className="space-y-1">
-                                    <p className="text-lg font-semibold">Guest User</p>
-                                  </div>
-                                </div>
-                              )}
-                              <div className="space-y-2">
-                                <h3 className="text-md font-medium">Theme</h3>
-                                <div className="flex items-center gap-2">
-                                  <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
-                                    <Sun className="h-5 w-5" />
-                                    <span className="sr-only">Light mode</span>
-                                  </Button>
-                                  <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
-                                    <Moon className="h-5 w-5" />
-                                    <span className="sr-only">Dark mode</span>
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                   </SidebarMenuItem>
+                  <MenuItems />
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-
-          <SidebarFooter>
-            <SidebarGroup>
-              {loading ? (
-                 <SidebarMenuButton className="w-full justify-start gap-3 h-12">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-sm font-medium">Loading...</span>
-                </SidebarMenuButton>
-              ) : user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton className="w-full justify-between gap-3 h-12">
-                      <div className="flex items-center gap-2">
-                         <Avatar className="h-7 w-7">
-                            <AvatarImage src={user.photoURL || undefined} />
-                            <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                        <div className="flex flex-col items-start">
-                          <span className="text-sm font-medium">{user.displayName}</span>
-                          <span className="text-xs text-muted-foreground">{user.email}</span>
-                        </div>
-                      </div>
-                      <ChevronsUpDown className="h-5 w-5" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <SidebarMenuButton className="w-full justify-start gap-3 h-12" onClick={handleLogin}>
-                  <LogIn className="h-5 w-5" />
-                  <span className="text-sm font-medium">Login with Google</span>
-                </SidebarMenuButton>
-              )}
-            </SidebarGroup>
-          </SidebarFooter>
         </Sidebar>
 
         <main className="flex flex-col flex-1 h-screen bg-background">
@@ -406,7 +429,7 @@ export default function DeciMindPage() {
               onSend={handleSendMessage}
               isLoading={isPending}
               placeholder="Message DeciMind..."
-              className="bg-black"
+              className="bg-background border-border"
             />
           </footer>
         </main>
