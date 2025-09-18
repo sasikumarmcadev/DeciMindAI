@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon, LayoutDashboard } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
@@ -31,8 +31,6 @@ type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
-
-type ChatMode = 'chat' | 'web';
 
 function AssistantMessage({ content }: { content: string }) {
   const displayedContent = useTypewriter(content, 20);
@@ -191,7 +189,7 @@ export default function DeciMindPage() {
                   return (
                      <Dialog key={idx}>
                         <DialogTrigger asChild>
-                           <button className="flex items-center justify-start gap-2 group/sidebar py-2">
+                           <button className="flex items-center justify-start gap-2 group/sidebar py-2 w-full">
                             {link.icon}
                             <motion.span
                               animate={{
@@ -278,7 +276,7 @@ export default function DeciMindPage() {
                     />
                   ),
                 }}
-                action={<LogOut className="h-5 w-5 text-neutral-700 dark:text-neutral-200" onClick={handleLogout}/>}
+                action={<LogOut className="h-5 w-5 text-neutral-700 dark:text-neutral-200 cursor-pointer" onClick={handleLogout}/>}
               />
             ) : (
               <SidebarLink

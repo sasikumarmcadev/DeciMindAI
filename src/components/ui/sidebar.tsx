@@ -170,12 +170,14 @@ export const SidebarLink = ({
   props?: LinkProps;
 }) => {
   const { open, animate } = useSidebar();
+  const Component = onClick ? "button" : Link;
+
   return (
-    <Link
+    <Component
       href={link.href}
       onClick={onClick}
       className={cn(
-        "flex items-center justify-start gap-2 group/sidebar py-2 relative",
+        "flex items-center justify-start gap-2 group/sidebar py-2 relative w-full",
         className
       )}
       {...props}
@@ -195,6 +197,6 @@ export const SidebarLink = ({
           {action}
         </div>
       )}
-    </Link>
+    </Component>
   );
 };
