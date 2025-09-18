@@ -144,19 +144,19 @@ export default function GroqChatPage() {
             <SidebarMenuItem>
               <Dialog>
                 <DialogTrigger asChild>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton disabled={!user}>
                     <Settings />
                     Settings
                   </SidebarMenuButton>
                 </DialogTrigger>
-                {user && (
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Settings</DialogTitle>
-                      <DialogDescription>
-                        Manage your application settings.
-                      </DialogDescription>
-                    </DialogHeader>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Settings</DialogTitle>
+                    <DialogDescription>
+                      Manage your application settings.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {user && (
                     <div className="py-4 space-y-6">
                       <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20">
@@ -182,8 +182,8 @@ export default function GroqChatPage() {
                         </div>
                       </div>
                     </div>
-                  </DialogContent>
-                )}
+                  )}
+                </DialogContent>
               </Dialog>
             </SidebarMenuItem>
           </SidebarMenu>
