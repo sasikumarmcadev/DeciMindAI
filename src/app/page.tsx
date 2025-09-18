@@ -144,7 +144,7 @@ export default function GroqChatPage() {
             <SidebarMenuItem>
               <Dialog>
                 <DialogTrigger asChild>
-                  <SidebarMenuButton disabled={!user}>
+                  <SidebarMenuButton>
                     <Settings />
                     Settings
                   </SidebarMenuButton>
