@@ -144,7 +144,7 @@ export default function GroqChatPage() {
             <SidebarMenuItem>
               <Dialog>
                 <DialogTrigger asChild>
-                  <SidebarMenuButton disabled={!user}>
+                  <SidebarMenuButton>
                     <Settings />
                     Settings
                   </SidebarMenuButton>
@@ -156,8 +156,8 @@ export default function GroqChatPage() {
                       Manage your application settings.
                     </DialogDescription>
                   </DialogHeader>
-                  {user && (
-                    <div className="py-4 space-y-6">
+                  <div className="py-4 space-y-6">
+                    {user ? (
                       <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20">
                           <AvatarImage src={user.photoURL || undefined} />
@@ -168,21 +168,30 @@ export default function GroqChatPage() {
                           <p className="text-sm text-muted-foreground">{user.email}</p>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <h3 className="text-md font-medium">Theme</h3>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
-                            <Sun className="h-5 w-5" />
-                            <span className="sr-only">Light mode</span>
-                          </Button>
-                          <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
-                            <Moon className="h-5 w-5" />
-                            <span className="sr-only">Dark mode</span>
-                          </Button>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                           <AvatarFallback><User /></AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                          <p className="text-lg font-semibold">Guest User</p>
                         </div>
                       </div>
+                    )}
+                    <div className="space-y-2">
+                      <h3 className="text-md font-medium">Theme</h3>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
+                          <Sun className="h-5 w-5" />
+                          <span className="sr-only">Light mode</span>
+                        </Button>
+                        <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
+                          <Moon className="h-5 w-5" />
+                          <span className="sr-only">Dark mode</span>
+                        </Button>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </DialogContent>
               </Dialog>
             </SidebarMenuItem>
