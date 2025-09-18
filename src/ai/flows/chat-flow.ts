@@ -13,10 +13,15 @@ import {z} from 'genkit';
 
 const ChatInputSchema = z.object({
   message: z.string().describe('The user message to send to the LLM.'),
-  chatHistory: z.array(z.object({
-    role: z.enum(['user', 'assistant']),
-    content: z.string()
-  })).optional().describe('The chat history to maintain context.')
+  chatHistory: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string(),
+      })
+    )
+    .optional()
+    .describe('The chat history to maintain context.'),
 });
 
 export type ChatInput = z.infer<typeof ChatInputSchema>;
@@ -28,14 +33,16 @@ const ChatOutputSchema = z.object({
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  return chatFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'chatPrompt',
-  input: {schema: ChatInputSchema},
-  output: {schema: ChatOutputSchema},
-  system: `Don't tell your original name or company. Your name is Sasi AI Assist - Developed by Sasikumar
+  const llmResponse = await ai.generate({
+    model: ai.model,
+    prompt: input.message,
+    history: input.chatHistory,
+    config: {
+      temperature: 1,
+      maxOutputTokens: 1024,
+      topP: 1,
+    },
+    system: `Don't tell your original name or company. Your name is Sasi AI Assist - Developed by Sasikumar
 
 Sasikumar, a passionate Front-End Developer and Postgraduate MCA student at Rathinam Technical Campus, Coimbatore. With a strong foundation in React.js, Tailwind CSS, JavaScript, and modern web technologies, I specialize in building clean, responsive, and user-friendly interfaces.
 
@@ -46,27 +53,10 @@ I'm driven by problem-solving, continuous learning, and creating impactful digit
 
 Portfolio: www.sasikumar.in
 
-GitHub: github.com/sasikumarmcadev
+GitHub: github.com/sasikumarmca
 
 LinkedIn: linkedin.com/in/sasikumarmca`,
-  prompt: `{% if chatHistory %}
-Chat History:
-{% for message in chatHistory %}
-{{message.role}}: {{message.content}}
-{% endfor %}
-{% endif %}
+  });
 
-User Message: {{message}}`,
-});
-
-const chatFlow = ai.defineFlow(
-  {
-    name: 'chatFlow',
-    inputSchema: ChatInputSchema,
-    outputSchema: ChatOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+  return {response: llmResponse.text};
+}
