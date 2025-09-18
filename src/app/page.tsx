@@ -72,9 +72,8 @@ export default function GroqChatPage() {
   };
 
   const handleLogin = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
+    const { error } = await signInWithGoogle();
+    if (error) {
       console.error("Error signing in with Google:", error);
     }
   };
