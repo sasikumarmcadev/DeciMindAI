@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/dialog"
 import { useTheme } from 'next-themes';
 import { PromptInputBox } from '@/components/ui/ai-prompt-box';
-import { Balancer } from 'react-wrap-balancer';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -69,48 +68,36 @@ export const LogoIcon = () => {
 
 function WelcomeAnimation() {
   return (
-    <div className="w-full h-full xs:text-2xl text-2xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-5xl flex flex-col items-center justify-center font-sans p-10 md:p-16 lg:p-24 text-primary tracking-wide uppercase">
+    <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary">
       <VerticalCutReveal
-        splitBy="characters"
-        staggerDuration={0.025}
+        splitBy="lines"
+        staggerDuration={0.1}
         staggerFrom="first"
         transition={{
           type: "spring",
           stiffness: 200,
-          damping: 21,
+          damping: 25,
         }}
+        containerClassName="text-2xl md:text-3xl lg:text-4xl leading-tight"
       >
-        {`HI 👋, FRIEND!`}
+        {"Welcome to DeciMind"}
       </VerticalCutReveal>
       <VerticalCutReveal
-        splitBy="characters"
-        staggerDuration={0.025}
-        staggerFrom="last"
-        reverse={true}
+        splitBy="words"
+        staggerDuration={0.05}
+        staggerFrom="first"
         transition={{
           type: "spring",
           stiffness: 200,
-          damping: 21,
-          delay: 0.5,
+          damping: 25,
+          delay: 0.7,
         }}
+        containerClassName="mt-4 text-base md:text-lg lg:text-xl text-foreground/80 max-w-2xl"
       >
-        {`🌤️ IT IS NICE ⇗ TO`}
-      </VerticalCutReveal>
-      <VerticalCutReveal
-        splitBy="characters"
-        staggerDuration={0.025}
-        staggerFrom="center"
-        transition={{
-          type: "spring",
-          stiffness: 200,
-          damping: 21,
-          delay: 1.1,
-        }}
-      >
-        {`MEET 😊 YOU.`}
+        {"I'm your advanced AI assistant, ready to help with questions, creative tasks, and more. How can I assist you today?"}
       </VerticalCutReveal>
     </div>
-  )
+  );
 }
 
 export default function DeciMindPage() {
