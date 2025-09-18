@@ -94,12 +94,12 @@ const SidebarGroup = React.forwardRef<
 SidebarGroup.displayName = "SidebarGroup"
 
 const SidebarGroupLabel = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
   const { isOpen } = useSidebar()
   return (
-    <p
+    <div
       ref={ref}
       className={cn(
         "px-4 text-sm font-medium uppercase text-muted-foreground",
