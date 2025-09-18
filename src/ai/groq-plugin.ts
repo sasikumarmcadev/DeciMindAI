@@ -4,8 +4,8 @@ import {
   ModelAction,
   ModelDefinition,
   Part,
-  defineModel,
 } from 'genkit';
+import { defineModel } from 'genkit/model';
 import Groq from 'groq-sdk';
 import { z } from 'zod';
 
