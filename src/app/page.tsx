@@ -176,7 +176,7 @@ function SidebarItems() {
           <SidebarMenu>
             {links.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton onClick={item.onClick} asChild={!item.onClick} tooltip={item.title}>
+                <SidebarMenuButton onClick={item.onClick} asChild={!!item.href} tooltip={item.title}>
                   {item.href ? (
                     <a href={item.href}>
                       <item.icon />
