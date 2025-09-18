@@ -141,51 +141,51 @@ export default function GroqChatPage() {
                 Chat
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <Dialog>
-              <DialogTrigger asChild>
-                <SidebarMenuItem>
-                    <SidebarMenuButton disabled={!user}>
-                      <Settings />
-                      Settings
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-              </DialogTrigger>
-              {user && (
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Settings</DialogTitle>
-                    <DialogDescription>
-                      Manage your application settings.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="py-4 space-y-6">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src={user.photoURL || undefined} />
-                        <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <p className="text-lg font-semibold">{user.displayName}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+            <SidebarMenuItem>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton disabled={!user}>
+                    <Settings />
+                    Settings
+                  </SidebarMenuButton>
+                </DialogTrigger>
+                {user && (
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Settings</DialogTitle>
+                      <DialogDescription>
+                        Manage your application settings.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-6">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                          <AvatarImage src={user.photoURL || undefined} />
+                          <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                          <p className="text-lg font-semibold">{user.displayName}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-md font-medium">Theme</h3>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
+                            <Sun className="h-5 w-5" />
+                            <span className="sr-only">Light mode</span>
+                          </Button>
+                          <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
+                            <Moon className="h-5 w-5" />
+                            <span className="sr-only">Dark mode</span>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <h3 className="text-md font-medium">Theme</h3>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => setTheme('light')}>
-                          <Sun className="h-5 w-5" />
-                          <span className="sr-only">Light mode</span>
-                        </Button>
-                        <Button variant="outline" size="icon" onClick={() => setTheme('dark')}>
-                          <Moon className="h-5 w-5" />
-                          <span className="sr-only">Dark mode</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </DialogContent>
-              )}
-            </Dialog>
+                  </DialogContent>
+                )}
+              </Dialog>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
