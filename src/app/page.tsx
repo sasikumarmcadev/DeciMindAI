@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon, Globe, ChevronDown } from 'lucide-react';
+import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useTheme } from 'next-themes';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 
 type Message = {
@@ -91,10 +91,10 @@ export default function DeciMindPage() {
   const handleLogin = async () => {
     const { error } = await signInWithGoogle();
     if (error) {
-      console.error("Error signing in with Google:", error);
       if (error.includes('auth/popup-closed-by-user')) {
         return; // User closed the popup, so we don't show an error.
       }
+      console.error("Error signing in with Google:", error);
       if (error.includes('auth/configuration-not-found')) {
         toast({
           title: 'Login Failed',
@@ -302,43 +302,48 @@ export default function DeciMindPage() {
           <footer className="p-4 border-t bg-background">
             <Card className="max-w-3xl mx-auto">
               <CardContent className="p-2">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center gap-2">
-                        {mode === 'web' ? <Globe className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
-                        <span className="capitalize">{mode === 'web' ? 'Web Search' : 'Chat'}</span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setMode('chat')}>
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        <span>Chat</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setMode('web')}>
-                        <Globe className="mr-2 h-4 w-4" />
-                        <span>Web Search</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Textarea
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    placeholder="Message DeciMind..."
-                    className="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
-                    rows={1}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        handleSendMessage(e);
-                      }
-                    }}
-                    disabled={isPending}
-                  />
-                  <Button type="submit" size="icon" disabled={!input.trim() || isPending}>
-                    {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                     <span className="sr-only">Send Message</span>
-                  </Button>
+                <form onSubmit={handleSendMessage} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Textarea
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      placeholder="Message DeciMind..."
+                      className="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
+                      rows={1}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          handleSendMessage(e);
+                        }
+                      }}
+                      disabled={isPending}
+                    />
+                    <Button type="submit" size="icon" disabled={!input.trim() || isPending}>
+                      {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                       <span className="sr-only">Send Message</span>
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2 justify-start">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={cn({ 'bg-accent': mode === 'chat' })}
+                      onClick={() => setMode('chat')}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Chat
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={cn({ 'bg-accent': mode === 'web' })}
+                      onClick={() => setMode('web')}
+                    >
+                      <Globe className="mr-2 h-4 w-4" />
+                      Web Search
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>
