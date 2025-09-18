@@ -19,6 +19,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/blocks/sidebar"
 import { useAuth } from '@/hooks/use-auth';
 import { signInWithGoogle, signOut } from '@/app/auth';
@@ -34,18 +35,14 @@ import {
 import { useTheme } from 'next-themes';
 import { PromptInputBox } from '@/components/ui/ai-prompt-box';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useSidebar } from '@/components/blocks/sidebar';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -57,19 +54,19 @@ function AssistantMessage({ content }: { content: string }) {
   return <MarkdownRenderer content={displayedContent} />;
 }
 
-export const Logo = () => {
+export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
   return (
     <div
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
       <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
-      <motion.span
+      {isOpen && <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="font-medium text-black dark:text-white whitespace-pre"
       >
         DeciMind
-      </motion.span>
+      </motion.span>}
     </div>
   );
 };
@@ -293,12 +290,12 @@ function SettingsDialogContent() {
   )
 }
 
-
-export default function DeciMindPage() {
+function PageContent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { isOpen } = useSidebar();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -332,108 +329,116 @@ export default function DeciMindPage() {
   const handleClear = () => {
     setMessages([]);
   }
-
+  
   return (
-    <SidebarProvider>
-      <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden")}>
-        <Sidebar>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                <Logo />
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <MenuItems />
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
+    <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden")}>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              <Logo isOpen={isOpen}/>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <MenuItems />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
 
-        <main className="flex flex-col flex-1 h-screen bg-background">
-          <header className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
-            <SidebarTrigger className="h-5 w-5" />
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold font-headline">DeciMind</h1>
-            </div>
-            <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
-              <Trash2 className="h-5 w-5" />
-            </Button>
-          </header>
+      <main className="flex flex-col flex-1 h-screen bg-background">
+        <header className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
+          <SidebarTrigger className="h-5 w-5" />
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold font-headline">DeciMind</h1>
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
+            <Trash2 className="h-5 w-5" />
+          </Button>
+        </header>
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-          {messages.length === 0 && !isPending && (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <WelcomeAnimation />
-            </div>
-          )}
-            {messages.map((msg, index) => (
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+        {messages.length === 0 && !isPending && (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <WelcomeAnimation />
+          </div>
+        )}
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex items-start gap-4 ${
+                msg.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              {msg.role === 'assistant' && (
+                <Avatar className="h-9 w-9 border">
+                  <AvatarFallback>
+                    <Bot className="h-5 w-5 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <div
-                key={index}
-                className={`flex items-start gap-4 ${
-                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                className={`max-w-xl w-full rounded-xl p-4 shadow-sm ${
+                  msg.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-card border'
                 }`}
               >
-                {msg.role === 'assistant' && (
-                  <Avatar className="h-9 w-9 border">
-                    <AvatarFallback>
-                      <Bot className="h-5 w-5 text-muted-foreground" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-                <div
-                  className={`max-w-xl w-full rounded-xl p-4 shadow-sm ${
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-card border'
-                  }`}
-                >
-                  {msg.role === 'assistant' ? (
-                    <AssistantMessage content={msg.content} />
-                  ) : (
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                  )}
-                </div>
-                {msg.role === 'user' && (
-                  <Avatar className="h-9 w-9 border">
-                      <AvatarImage src={user?.photoURL || undefined} />
-                    <AvatarFallback>
-                      <User className="h-5 w-5 text-muted-foreground" />
-                    </AvatarFallback>
-                  </Avatar>
+                {msg.role === 'assistant' ? (
+                  <AssistantMessage content={msg.content} />
+                ) : (
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
                 )}
               </div>
-            ))}
-              {isPending && (
-                <div className="flex items-start gap-4 justify-start">
-                  <Avatar className="h-9 w-9 border">
-                    <AvatarFallback>
-                      <Bot className="h-5 w-5 text-muted-foreground" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border">
-                    <div className="bouncing-loader">
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                    </div>
+              {msg.role === 'user' && (
+                <Avatar className="h-9 w-9 border">
+                    <AvatarImage src={user?.photoURL || undefined} />
+                  <AvatarFallback>
+                    <User className="h-5 w-5 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          ))}
+            {isPending && (
+              <div className="flex items-start gap-4 justify-start">
+                <Avatar className="h-9 w-9 border">
+                  <AvatarFallback>
+                    <Bot className="h-5 w-5 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border">
+                  <div className="bouncing-loader">
+                    <div></div>
+                    <div></div>
+                    <div></div>
                   </div>
                 </div>
-              )}
-            <div ref={messagesEndRef} />
-          </main>
-
-          <footer className="p-4 bg-transparent w-full max-w-3xl mx-auto">
-            <PromptInputBox
-              onSend={handleSendMessage}
-              isLoading={isPending}
-              placeholder="Message DeciMind..."
-              className="bg-background border-border"
-            />
-          </footer>
+              </div>
+            )}
+          <div ref={messagesEndRef} />
         </main>
-      </div>
+
+        <footer className="p-4 bg-transparent w-full max-w-3xl mx-auto">
+          <PromptInputBox
+            onSend={handleSendMessage}
+            isLoading={isPending}
+            placeholder="Message DeciMind..."
+            className="bg-background border-border"
+          />
+        </footer>
+      </main>
+    </div>
+  )
+}
+
+export default function DeciMindPage() {
+  return (
+    <SidebarProvider>
+      <PageContent />
     </SidebarProvider>
   );
 }
+
+    
