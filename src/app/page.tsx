@@ -296,7 +296,7 @@ export default function DeciMindPage() {
         </SidebarBody>
       </Sidebar>
       
-      <div className="flex flex-col flex-1 h-screen">
+      <div className="flex flex-col flex-1 h-screen bg-background">
         <header className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
           <div></div>
           <div className="flex items-center gap-2">
@@ -307,7 +307,7 @@ export default function DeciMindPage() {
           </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-background">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
         {messages.length === 0 && !isPending && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Bot className="h-16 w-16 text-primary mb-4" />

@@ -301,7 +301,7 @@ const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
           <div
             ref={ref}
             className={cn(
-              "rounded-3xl border border-border bg-card p-2 shadow-lg transition-all duration-300",
+              "rounded-3xl border border-border bg-black p-2 shadow-lg transition-all duration-300",
               isLoading && "border-primary/70",
               className
             )}
@@ -527,7 +527,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
         isLoading={isLoading}
         onSubmit={handleSubmit}
         className={cn(
-          "w-full bg-card border-border shadow-lg transition-all duration-300 ease-in-out",
+          "w-full transition-all duration-300 ease-in-out",
           isRecording && "border-red-500/70",
           className
         )}
