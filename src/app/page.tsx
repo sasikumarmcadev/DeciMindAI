@@ -12,6 +12,7 @@ import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { signInWithGoogle, signOut } from '@/app/auth';
+import { useToast } from '@/hooks/use-toast';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -29,6 +30,7 @@ export default function GroqChatPage() {
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, loading } = useAuth();
+  const { toast } = useToast();
 
 
   const scrollToBottom = () => {
@@ -75,6 +77,11 @@ export default function GroqChatPage() {
     const { error } = await signInWithGoogle();
     if (error) {
       console.error("Error signing in with Google:", error);
+      toast({
+        title: 'Login Failed',
+        description: 'Google Sign-In is not enabled for this project. Please enable it in the Firebase console.',
+        variant: 'destructive',
+      });
     }
   };
 
