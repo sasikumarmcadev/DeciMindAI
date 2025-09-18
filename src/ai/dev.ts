@@ -2,4 +2,3 @@ import { config } from 'dotenv';
 config();
 
 import '@/ai/flows/chat-flow.ts';
-import '@/ai/flows/context-window.ts';
