@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon, Globe } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDeciMindResponse } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -22,8 +20,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useTheme } from 'next-themes';
-import { cn } from '@/lib/utils';
-
+import { PromptInputBox } from '@/components/ui/ai-prompt-box';
+import { Balancer } from 'react-wrap-balancer';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -39,14 +37,11 @@ function AssistantMessage({ content }: { content: string }) {
 
 export default function DeciMindPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [mode, setMode] = useState<ChatMode>('chat');
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const { setTheme } = useTheme();
-
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -56,18 +51,15 @@ export default function DeciMindPage() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const handleSendMessage = (message: string, files?: File[]) => {
+    if (!message.trim() && (!files || files.length === 0)) return;
 
-    const newMessages: Message[] = [...messages, { role: 'user', content: input }];
+    const newMessages: Message[] = [...messages, { role: 'user', content: message }];
     setMessages(newMessages);
-    const userInput = input;
-    setInput('');
 
     startTransition(async () => {
-      const chatHistory = newMessages.filter(m => m.role !== 'user' || m.content !== userInput);
-      const result = await getDeciMindResponse(chatHistory, userInput);
+      const chatHistory = newMessages.filter(m => m.role !== 'user' || m.content !== message);
+      const result = await getDeciMindResponse(chatHistory, message);
 
       if (result.response) {
         setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
@@ -92,7 +84,7 @@ export default function DeciMindPage() {
     const { error } = await signInWithGoogle();
     if (error) {
       if (error.includes('auth/popup-closed-by-user')) {
-        return; // User closed the popup, so we don't show an error.
+        return;
       }
       console.error("Error signing in with Google:", error);
       if (error.includes('auth/configuration-not-found')) {
@@ -243,6 +235,17 @@ export default function DeciMindPage() {
           </header>
 
           <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+          {messages.length === 0 && !isPending && (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Bot className="h-16 w-16 text-primary mb-4" />
+              <h2 className="text-2xl font-bold mb-2">DeciMind</h2>
+              <p className="text-muted-foreground">
+                <Balancer>
+                  Your friendly AI assistant. Start a conversation by typing a message below.
+                </Balancer>
+              </p>
+            </div>
+          )}
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -299,54 +302,12 @@ export default function DeciMindPage() {
             <div ref={messagesEndRef} />
           </main>
 
-          <footer className="p-4 border-t bg-background">
-            <Card className="max-w-3xl mx-auto">
-              <CardContent className="p-2">
-                <form onSubmit={handleSendMessage} className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Textarea
-                      value={input}
-                      onChange={e => setInput(e.target.value)}
-                      placeholder="Message DeciMind..."
-                      className="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
-                      rows={1}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          handleSendMessage(e);
-                        }
-                      }}
-                      disabled={isPending}
-                    />
-                    <Button type="submit" size="icon" disabled={!input.trim() || isPending}>
-                      {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                       <span className="sr-only">Send Message</span>
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2 justify-start">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className={cn({ 'bg-accent': mode === 'chat' })}
-                      onClick={() => setMode('chat')}
-                    >
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Chat
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className={cn({ 'bg-accent': mode === 'web' })}
-                      onClick={() => setMode('web')}
-                    >
-                      <Globe className="mr-2 h-4 w-4" />
-                      Web Search
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+          <footer className="p-4 bg-transparent w-full max-w-3xl mx-auto">
+            <PromptInputBox
+              onSend={handleSendMessage}
+              isLoading={isPending}
+              placeholder="Message DeciMind..."
+            />
           </footer>
         </div>
       </SidebarInset>

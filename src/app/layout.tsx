@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from '@/components/theme-provider';
+import { Provider as BalancerProvider } from 'react-wrap-balancer';
 
 export const metadata: Metadata = {
   title: 'DeciMind',
@@ -30,11 +31,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <SidebarProvider>
-              {children}
-            </SidebarProvider>
-          </AuthProvider>
+          <BalancerProvider>
+            <AuthProvider>
+              <SidebarProvider>
+                {children}
+              </SidebarProvider>
+            </AuthProvider>
+          </BalancerProvider>
           <Toaster />
         </ThemeProvider>
       </body>
