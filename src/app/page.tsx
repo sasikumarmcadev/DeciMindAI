@@ -5,7 +5,7 @@ import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft } 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { getGroqResponse } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -64,7 +64,7 @@ export default function GroqChatPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <>
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
@@ -186,6 +186,6 @@ export default function GroqChatPage() {
           </footer>
         </div>
       </SidebarInset>
-    </div>
+    </>
   );
 }
