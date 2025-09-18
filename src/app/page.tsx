@@ -142,14 +142,14 @@ export default function GroqChatPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <Dialog>
-              <SidebarMenuItem>
-                <DialogTrigger asChild>
-                  <SidebarMenuButton disabled={!user}>
-                    <Settings />
-                    Settings
-                  </SidebarMenuButton>
-                </DialogTrigger>
-              </SidebarMenuItem>
+              <DialogTrigger asChild>
+                <SidebarMenuItem>
+                    <SidebarMenuButton disabled={!user}>
+                      <Settings />
+                      Settings
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+              </DialogTrigger>
               {user && (
                 <DialogContent>
                   <DialogHeader>
