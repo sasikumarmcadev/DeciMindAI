@@ -77,11 +77,26 @@ export default function GroqChatPage() {
     const { error } = await signInWithGoogle();
     if (error) {
       console.error("Error signing in with Google:", error);
-      toast({
-        title: 'Login Failed',
-        description: 'Google Sign-In is not enabled for this project. Please enable it in the Firebase console.',
-        variant: 'destructive',
-      });
+      if (error.includes('auth/configuration-not-found')) {
+        toast({
+          title: 'Login Failed',
+          description: 'Google Sign-In is not enabled for this project. Please enable it in the Firebase console.',
+          variant: 'destructive',
+        });
+      } else if (error.includes('auth/unauthorized-domain')) {
+        toast({
+          title: 'Login Failed',
+          description: 'This domain is not authorized for authentication. Please add it to the authorized domains in the Firebase console.',
+          variant: 'destructive',
+        });
+      }
+      else {
+        toast({
+          title: 'Login Failed',
+          description: error,
+          variant: 'destructive',
+        });
+      }
     }
   };
 
