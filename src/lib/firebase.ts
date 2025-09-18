@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
+import { getDatabase } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -11,12 +12,15 @@ const firebaseConfig = {
   "apiKey": "AIzaSyCKclXWE-qTW-3vM3SCHyo4_r2AceeVN4w",
   "authDomain": "studio-6732716937-f41ae.firebaseapp.com",
   "measurementId": "",
-  "messagingSenderId": "354757028087"
+  "messagingSenderId": "354757028087",
+  "databaseURL": "https://studio-6732716937-f41ae-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const database = getDatabase(app);
+
 
 // Initialize Analytics if running in the browser
 if (typeof window !== 'undefined') {
