@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft } from 'lucide-react';
+import { Bot, User, Send, Trash2, Loader2, MessageSquare, Settings, PanelLeft, Plus, LogOut, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,7 +9,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { getGroqResponse } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/use-auth';
+import { signInWithGoogle, signOut } from '@/app/auth';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -26,6 +28,8 @@ export default function GroqChatPage() {
   const [input, setInput] = useState('');
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user, loading } = useAuth();
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,6 +67,22 @@ export default function GroqChatPage() {
     setMessages([]);
   }
 
+  const handleNewChat = () => {
+    setMessages([]);
+  };
+
+  const handleLogin = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Error signing in with Google:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <>
       <Sidebar>
@@ -74,6 +94,12 @@ export default function GroqChatPage() {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={handleNewChat}>
+                <Plus />
+                New Chat
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton isActive>
                 <MessageSquare />
@@ -88,6 +114,32 @@ export default function GroqChatPage() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
+        <SidebarFooter>
+          {loading ? (
+            <div className="flex items-center gap-2 p-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Loading...</span>
+            </div>
+          ) : user ? (
+            <div className="flex items-center justify-between p-2">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL || undefined} />
+                  <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">{user.displayName}</span>
+              </div>
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={handleLogin} className="w-full">
+              <LogIn />
+              Login with Google
+            </Button>
+          )}
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <div className="flex flex-col h-screen">
@@ -133,6 +185,7 @@ export default function GroqChatPage() {
                 </div>
                 {msg.role === 'user' && (
                   <Avatar className="h-9 w-9 border">
+                     <AvatarImage src={user?.photoURL || undefined} />
                     <AvatarFallback>
                       <User className="h-5 w-5 text-muted-foreground" />
                     </AvatarFallback>
