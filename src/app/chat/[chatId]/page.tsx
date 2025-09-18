@@ -328,7 +328,7 @@ function SettingsDialogContent() {
   )
 }
 
-function PageContent({ params }: { params: { chatId: string } }) {
+function PageContent({ chatId }: { chatId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -340,12 +340,12 @@ function PageContent({ params }: { params: { chatId: string } }) {
 
   useEffect(() => {
     if (loading) return;
-    if (!user && !params.chatId.startsWith('guest_')) {
+    if (!user && !chatId.startsWith('guest_')) {
       router.push('/');
       return;
     }
 
-    const messagesRef = ref(database, `chats/${user?.uid}/${params.chatId}/messages`);
+    const messagesRef = ref(database, `chats/${user?.uid}/${chatId}/messages`);
     onValue(messagesRef, (snapshot) => {
       const data = snapshot.val();
       setMessages(data ? Object.values(data) : []);
@@ -354,7 +354,7 @@ function PageContent({ params }: { params: { chatId: string } }) {
     return () => {
       off(messagesRef);
     }
-  }, [params.chatId, user, loading, router]);
+  }, [chatId, user, loading, router]);
 
 
   const scrollToBottom = () => {
@@ -377,8 +377,8 @@ function PageContent({ params }: { params: { chatId: string } }) {
     const userMessage: Message = { role: 'user', content: message };
     setMessages(prev => [...prev, userMessage]);
 
-    if (user && !params.chatId.startsWith('guest_')) {
-      const messagesRef = ref(database, `chats/${user.uid}/${params.chatId}/messages`);
+    if (user && !chatId.startsWith('guest_')) {
+      const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
       push(messagesRef, userMessage);
     }
 
@@ -396,16 +396,16 @@ function PageContent({ params }: { params: { chatId: string } }) {
       const assistantMessage: Message = { role: 'assistant', content: responseContent };
       setMessages(prev => [...prev, assistantMessage]);
 
-      if (user && !params.chatId.startsWith('guest_')) {
-        const messagesRef = ref(database, `chats/${user.uid}/${params.chatId}/messages`);
+      if (user && !chatId.startsWith('guest_')) {
+        const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
         push(messagesRef, assistantMessage);
       }
     });
   };
 
   const handleClear = () => {
-    if (user && params.chatId) {
-      const chatRef = ref(database, `chats/${user.uid}/${params.chatId}`);
+    if (user && chatId) {
+      const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
       remove(chatRef).then(() => {
         router.push('/');
       });
@@ -526,7 +526,7 @@ function PageContent({ params }: { params: { chatId: string } }) {
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
   return (
     <SidebarProvider>
-      <PageContent params={params} />
+      <PageContent chatId={params.chatId} />
     </SidebarProvider>
   );
 }
