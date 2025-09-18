@@ -26,6 +26,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -66,6 +67,51 @@ export const LogoIcon = () => {
   );
 };
 
+function WelcomeAnimation() {
+  return (
+    <div className="w-full h-full xs:text-2xl text-2xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-5xl flex flex-col items-center justify-center font-sans p-10 md:p-16 lg:p-24 text-primary tracking-wide uppercase">
+      <VerticalCutReveal
+        splitBy="characters"
+        staggerDuration={0.025}
+        staggerFrom="first"
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 21,
+        }}
+      >
+        {`HI 👋, FRIEND!`}
+      </VerticalCutReveal>
+      <VerticalCutReveal
+        splitBy="characters"
+        staggerDuration={0.025}
+        staggerFrom="last"
+        reverse={true}
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 21,
+          delay: 0.5,
+        }}
+      >
+        {`🌤️ IT IS NICE ⇗ TO`}
+      </VerticalCutReveal>
+      <VerticalCutReveal
+        splitBy="characters"
+        staggerDuration={0.025}
+        staggerFrom="center"
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 21,
+          delay: 1.1,
+        }}
+      >
+        {`MEET 😊 YOU.`}
+      </VerticalCutReveal>
+    </div>
+  )
+}
 
 export default function DeciMindPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -279,7 +325,8 @@ export default function DeciMindPage() {
                 action={<LogOut className="h-5 w-5 text-neutral-700 dark:text-neutral-200 cursor-pointer" onClick={handleLogout}/>}
               />
             ) : (
-              <SidebarLink
+               <SidebarLink
+                onClick={handleLogin}
                 link={{
                   label: "Login with Google",
                   href: "#",
@@ -287,7 +334,6 @@ export default function DeciMindPage() {
                     <LogIn className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
                   ),
                 }}
-                onClick={handleLogin}
               />
             )}
           </div>
@@ -308,13 +354,7 @@ export default function DeciMindPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
         {messages.length === 0 && !isPending && (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <Bot className="h-16 w-16 text-primary mb-4" />
-            <h2 className="text-2xl font-bold mb-2">DeciMind</h2>
-            <p className="text-muted-foreground">
-              <Balancer>
-                Your friendly AI assistant. Start a conversation by typing a message below.
-              </Balancer>
-            </p>
+            <WelcomeAnimation />
           </div>
         )}
           {messages.map((msg, index) => (
@@ -378,6 +418,7 @@ export default function DeciMindPage() {
             onSend={handleSendMessage}
             isLoading={isPending}
             placeholder="Message DeciMind..."
+            className="bg-black"
           />
         </footer>
       </div>
