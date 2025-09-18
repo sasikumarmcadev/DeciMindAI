@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Manages the chat context window for the Groq Chat application.
+ * @fileOverview Manages the chat context window for the DeciMind application.
  *
  * This file defines a Genkit flow that retains context from the chat history within the limits of the model's context window.
  * It includes an exported function, `manageContextWindow`, which handles the process of managing the context window.

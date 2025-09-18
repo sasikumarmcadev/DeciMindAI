@@ -6,8 +6,8 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'Groq Chat',
-  description: 'A ChatGPT-like web app using the Groq Cloud API',
+  title: 'DeciMind',
+  description: 'A helpful AI assistant.',
 };
 
 export default function RootLayout({

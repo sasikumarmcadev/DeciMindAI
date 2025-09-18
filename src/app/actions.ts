@@ -1,13 +1,13 @@
 'use server';
 
-import { groqChat, type GroqChatInput } from '@/ai/flows/groq-integration';
+import { chat, type ChatInput } from '@/ai/flows/chat-flow';
 
-export async function getGroqResponse(
-  chatHistory: GroqChatInput['chatHistory'],
+export async function getDeciMindResponse(
+  chatHistory: ChatInput['chatHistory'],
   message: string
 ) {
   try {
-    const response = await groqChat({
+    const response = await chat({
       message,
       chatHistory,
     });
@@ -15,6 +15,6 @@ export async function getGroqResponse(
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return { error: `Failed to get response from Groq: ${errorMessage}` };
+    return { error: `Failed to get response: ${errorMessage}` };
   }
 }

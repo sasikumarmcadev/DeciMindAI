@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getGroqResponse } from '@/app/actions';
+import { getDeciMindResponse } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
@@ -34,7 +34,7 @@ function AssistantMessage({ content }: { content: string }) {
   return <MarkdownRenderer content={displayedContent} />;
 }
 
-export default function GroqChatPage() {
+export default function DeciMindPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -63,7 +63,7 @@ export default function GroqChatPage() {
 
     startTransition(async () => {
       const chatHistory = newMessages.filter(m => m.role !== 'user' || m.content !== userInput);
-      const result = await getGroqResponse(chatHistory, userInput);
+      const result = await getDeciMindResponse(chatHistory, userInput);
 
       if (result.response) {
         setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
@@ -124,7 +124,7 @@ export default function GroqChatPage() {
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <Bot className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-bold font-headline">Groq Chat</h1>
+            <h1 className="text-xl font-bold font-headline">DeciMind</h1>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -231,7 +231,7 @@ export default function GroqChatPage() {
               <PanelLeft />
             </SidebarTrigger>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold font-headline">Groq Chat</h1>
+              <h1 className="text-xl font-bold font-headline">DeciMind</h1>
             </div>
             <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
               <Trash2 className="h-5 w-5" />
@@ -302,7 +302,7 @@ export default function GroqChatPage() {
                   <Textarea
                     value={input}
                     onChange={e => setInput(e.target.value)}
-                    placeholder="Message Groq Chat..."
+                    placeholder="Message DeciMind..."
                     className="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
                     rows={1}
                     onKeyDown={e => {
