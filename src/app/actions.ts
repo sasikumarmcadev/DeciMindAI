@@ -1,5 +1,8 @@
 'use server';
 
+import { config } from 'dotenv';
+config();
+
 import { chat, type ChatInput } from '@/ai/flows/chat-flow';
 
 export async function getDeciMindResponse(
