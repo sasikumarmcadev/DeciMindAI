@@ -36,7 +36,7 @@ export const SidebarProvider = ({
   children,
   open: openProp,
   setOpen: setOpenProp,
-  animate = true,
+animate = true,
 }: {
   children: React.ReactNode;
   open?: boolean;
@@ -170,18 +170,10 @@ export const SidebarLink = ({
   props?: LinkProps;
 }) => {
   const { open, animate } = useSidebar();
-  const Component = onClick ? "button" : Link;
+  const baseClasses = "flex items-center justify-start gap-2 group/sidebar py-2 relative w-full";
 
-  return (
-    <Component
-      href={link.href}
-      onClick={onClick}
-      className={cn(
-        "flex items-center justify-start gap-2 group/sidebar py-2 relative w-full",
-        className
-      )}
-      {...props}
-    >
+  const content = (
+    <>
       {link.icon}
       <motion.span
         animate={{
@@ -203,6 +195,28 @@ export const SidebarLink = ({
           {action}
         </div>
       )}
-    </Component>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={cn(baseClasses, className)}
+        {...props}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={link.href}
+      className={cn(baseClasses, className)}
+      {...props}
+    >
+      {content}
+    </Link>
   );
 };
