@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useTransition, use } from 'react';
@@ -524,11 +525,10 @@ function PageContent({ chatId }: { chatId: string }) {
 }
 
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
+  const resolvedParams = use(params);
   return (
     <SidebarProvider>
-      <PageContent chatId={params.chatId} />
+      <PageContent chatId={resolvedParams.chatId} />
     </SidebarProvider>
   );
 }
-
-    
