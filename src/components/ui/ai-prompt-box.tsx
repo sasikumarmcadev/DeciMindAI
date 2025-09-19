@@ -17,7 +17,7 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, ...props }, ref) => (
   <textarea
     className={cn(
-      "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none",
+      "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] md:min-h-[44px] resize-none",
       className
     )}
     ref={ref}
@@ -252,7 +252,7 @@ const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
           <div
             ref={ref}
             className={cn(
-              "rounded-3xl border bg-card p-2 shadow-lg transition-all duration-300",
+              "rounded-2xl md:rounded-3xl border bg-card p-1 md:p-2 shadow-lg transition-all duration-300",
               isLoading && "border-primary/70",
               className
             )}
@@ -306,7 +306,7 @@ const PromptInputTextarea: React.FC<PromptInputTextareaProps & React.ComponentPr
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={handleKeyDown}
-      className={cn("text-base", className)}
+      className={cn("text-base md:text-sm", className)}
       disabled={disabled}
       placeholder={placeholder}
       {...props}
@@ -316,7 +316,7 @@ const PromptInputTextarea: React.FC<PromptInputTextareaProps & React.ComponentPr
 
 interface PromptInputActionsProps extends React.HTMLAttributes<HTMLDivElement> {}
 const PromptInputActions: React.FC<PromptInputActionsProps> = ({ children, className, ...props }) => (
-  <div className={cn("flex items-center gap-2", className)} {...props}>
+  <div className={cn("flex items-center gap-1 md:gap-2", className)} {...props}>
     {children}
   </div>
 );
@@ -348,7 +348,7 @@ const PromptInputAction: React.FC<PromptInputActionProps> = ({
 
 // Custom Divider Component
 const CustomDivider: React.FC = () => (
-  <div className="relative h-6 w-px mx-1">
+  <div className="relative h-5 md:h-6 w-px mx-0.5 md:mx-1">
     <div
       className="absolute inset-0 bg-gradient-to-t from-transparent via-border to-transparent"
     />
@@ -494,7 +494,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               <div key={index} className="relative group">
                 {file.type.startsWith("image/") && filePreviews[file.name] && (
                   <div
-                    className="w-16 h-16 rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
+                    className="w-14 h-14 md:w-16 md:h-16 rounded-lg md:rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
                     onClick={() => openImageModal(filePreviews[file.name])}
                   >
                     <img
@@ -532,7 +532,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                 ? "Think deeply..."
                 : placeholder
             }
-            className="text-base"
+            className="text-base md:text-sm"
           />
         </div>
 
@@ -544,20 +544,20 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
           />
         )}
 
-        <PromptInputActions className="responsive-prompt-actions flex items-center justify-between gap-2 p-0 pt-2">
+        <PromptInputActions className="responsive-prompt-actions flex items-center justify-between gap-1 md:gap-2 p-0 pt-1 md:pt-2">
           <div
             className={cn(
-              "flex items-center gap-1 transition-opacity duration-300 w-full md:w-auto",
+              "flex items-center gap-0.5 md:gap-1 transition-opacity duration-300 w-full md:w-auto",
               isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible"
             )}
           >
             <PromptInputAction tooltip="Upload image">
               <button
                 onClick={() => uploadInputRef.current?.click()}
-                className="flex h-8 w-8 text-muted-foreground cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="flex h-7 w-7 md:h-8 md:w-8 text-muted-foreground cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-accent hover:text-accent-foreground"
                 disabled={isRecording}
               >
-                <Paperclip className="h-5 w-5 transition-colors" />
+                <Paperclip className="h-4 w-4 md:h-5 md:w-5 transition-colors" />
                 <input
                   ref={uploadInputRef}
                   type="file"
@@ -576,7 +576,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                 type="button"
                 onClick={() => handleToggleChange("search")}
                 className={cn(
-                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
+                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-7 md:h-8",
                   showSearch
                     ? "bg-[#1EAEDB]/15 border-[#1EAEDB] text-[#1EAEDB]"
                     : "bg-transparent border-transparent text-muted-foreground hover:text-accent-foreground"
@@ -612,7 +612,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                 type="button"
                 onClick={() => handleToggleChange("think")}
                 className={cn(
-                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
+                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-7 md:h-8",
                   showThink
                     ? "bg-[#8B5CF6]/15 border-[#8B5CF6] text-[#8B5CF6]"
                     : "bg-transparent border-transparent text-muted-foreground hover:text-accent-foreground"
@@ -659,7 +659,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               variant="default"
               size="icon"
               className={cn(
-                "h-8 w-8 rounded-full transition-all duration-200 flex-shrink-0",
+                "h-7 w-7 md:h-8 md:w-8 rounded-full transition-all duration-200 flex-shrink-0",
                 isRecording
                   ? "bg-transparent hover:bg-accent text-red-500 hover:text-red-400"
                   : hasContent
@@ -676,11 +676,11 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               {isLoading ? (
                 <Square className="h-4 w-4 fill-primary-foreground animate-pulse" />
               ) : isRecording ? (
-                <StopCircle className="h-5 w-5 text-red-500" />
+                <StopCircle className="h-4 w-4 md:h-5 md:w-5 text-red-500" />
               ) : hasContent ? (
                 <ArrowUp className="h-4 w-4" />
               ) : (
-                <Mic className="h-5 w-5 transition-colors" />
+                <Mic className="h-4 w-4 md:h-5 md:w-5 transition-colors" />
               )}
             </Button>
           </PromptInputAction>
