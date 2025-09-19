@@ -1,12 +1,4 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
-
-export const ai = genkit({
-  plugins: [
-    googleAI({
-      apiKey: process.env.GROQ_API_KEY,
-      baseUrl: 'https://api.groq.com/openai/v1',
-    }),
-  ],
-  logLevel: 'debug',
-});
+// This file is intentionally left empty.
+// The Genkit implementation has been removed in favor of a direct Groq SDK integration.
+// You can remove this file if you do not plan to use Genkit for other features.
+export {};

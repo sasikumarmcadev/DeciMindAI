@@ -1,7 +1,7 @@
 'use server';
 
 import { config } from 'dotenv';
-config({ path: '.env.local' });
+config(); // Load environment variables from .env
 
 import { chat, type ChatInput } from '@/ai/flows/chat-flow';
 
