@@ -544,7 +544,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
           />
         )}
 
-        <PromptInputActions className="flex flex-col md:flex-row items-center justify-between gap-2 p-0 pt-2">
+        <PromptInputActions className="responsive-prompt-actions flex items-center justify-between gap-2 p-0 pt-2">
           <div
             className={cn(
               "flex items-center gap-1 transition-opacity duration-300 w-full md:w-auto",
