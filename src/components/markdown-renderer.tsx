@@ -16,14 +16,16 @@ export function MarkdownRenderer({ content }: { content: string }) {
           return <CodeBlock key={index} language={language || 'text'} code={code.trim()} />;
         }
         
-        // Don't render empty strings
+        // Don't render empty strings that are just whitespace
         if (!part.trim()) return null;
 
-        return (
-          <p key={index} className="whitespace-pre-wrap leading-relaxed">
-            {part}
+        // Render paragraphs for non-code parts
+        const paragraphParts = part.split('\n').filter(p => p.trim());
+        return paragraphParts.map((p, i) => (
+          <p key={`${index}-${i}`} className="whitespace-pre-wrap leading-relaxed">
+            {p}
           </p>
-        );
+        ));
       })}
     </div>
   );

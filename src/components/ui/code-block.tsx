@@ -112,6 +112,8 @@ export const CodeBlock = ({
               codeTagProps={{
                 style: {
                   fontFamily: "inherit",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
                 },
               }}
               lineNumberStyle={{
