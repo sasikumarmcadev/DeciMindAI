@@ -30,9 +30,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <BalancerProvider>
-            {children}
-          </BalancerProvider>
+          <AuthProvider>
+            <BalancerProvider>
+              {children}
+            </BalancerProvider>
+          </AuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>

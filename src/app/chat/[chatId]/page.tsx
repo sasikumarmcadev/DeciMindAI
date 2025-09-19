@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useTransition, use } from 'react';
+import { useState, useRef, useEffect, useTransition } from 'react';
 import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,7 +22,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/blocks/sidebar"
-import { useAuth, AuthProvider } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth';
 import { signInWithGoogle, signOut } from '@/app/auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -527,12 +527,9 @@ function PageContent({ chatId }: { chatId: string }) {
 }
 
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
-  const resolvedParams = use(params);
   return (
-    <AuthProvider>
-      <SidebarProvider>
-        <PageContent chatId={resolvedParams.chatId} />
-      </SidebarProvider>
-    </AuthProvider>
+    <SidebarProvider>
+      <PageContent chatId={params.chatId} />
+    </SidebarProvider>
   );
 }
