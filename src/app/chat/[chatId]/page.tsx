@@ -150,8 +150,25 @@ function SidebarItems() {
     }
   }, [user]);
 
-  const handleNewChat = () => {
-    router.push('/');
+  const handleNewChat = async () => {
+    if (user) {
+      const chatsRef = ref(database, `chats/${user.uid}`);
+      const newChatRef = push(chatsRef);
+      const newChatId = newChatRef.key;
+
+      const newChatData = {
+        createdAt: serverTimestamp(),
+        title: 'New Chat',
+      };
+
+      await set(newChatRef, newChatData);
+      if (newChatId) {
+        router.push(`/chat/${newChatId}`);
+      }
+    } else {
+      const newChatId = `guest_${new Date().getTime()}`;
+      router.push(`/chat/${newChatId}`);
+    }
   };
 
   const handleLogin = async () => {
