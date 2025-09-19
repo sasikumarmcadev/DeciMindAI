@@ -544,10 +544,10 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
           />
         )}
 
-        <PromptInputActions className="flex items-center justify-between gap-2 p-0 pt-2">
+        <PromptInputActions className="flex flex-col md:flex-row items-center justify-between gap-2 p-0 pt-2">
           <div
             className={cn(
-              "flex items-center gap-1 transition-opacity duration-300",
+              "flex items-center gap-1 transition-opacity duration-300 w-full md:w-auto",
               isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible"
             )}
           >
@@ -571,7 +571,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               </button>
             </PromptInputAction>
 
-            <div className="flex items-center">
+            <div className="flex items-center flex-1 justify-start md:justify-center">
               <button
                 type="button"
                 onClick={() => handleToggleChange("search")}
@@ -659,7 +659,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               variant="default"
               size="icon"
               className={cn(
-                "h-8 w-8 rounded-full transition-all duration-200",
+                "h-8 w-8 rounded-full transition-all duration-200 flex-shrink-0",
                 isRecording
                   ? "bg-transparent hover:bg-accent text-red-500 hover:text-red-400"
                   : hasContent

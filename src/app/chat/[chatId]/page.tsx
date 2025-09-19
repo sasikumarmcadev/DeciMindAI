@@ -422,7 +422,7 @@ function PageContent({ chatId }: { chatId: string }) {
       </Sidebar>
 
       <main className="flex flex-col flex-1 h-screen bg-background">
-        <header className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
+        <header className="flex items-center justify-between p-2 md:p-4 border-b shadow-sm bg-background">
           {isMobile ? (
             <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
               <SheetTrigger asChild>
@@ -444,74 +444,76 @@ function PageContent({ chatId }: { chatId: string }) {
             <SidebarTrigger className="h-10 w-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground" />
           )}
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold font-headline">DeciMind</h1>
+            <h1 className="text-lg md:text-xl font-bold font-headline">DeciMind</h1>
           </div>
           <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
             <Trash2 className="h-5 w-5" />
           </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-          {messages.length === 0 && !isPending && (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <WelcomeAnimation />
-            </div>
-          )}
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex items-start gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-            >
-              {msg.role === 'assistant' && (
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+            {messages.length === 0 && !isPending && (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <WelcomeAnimation />
+              </div>
+            )}
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex items-start gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+              >
+                {msg.role === 'assistant' && (
+                  <Avatar className="h-9 w-9 border">
+                    <AvatarFallback>
+                      <Bot className="h-5 w-5 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <div
+                  className={`max-w-lg md:max-w-xl lg:max-w-2xl w-full rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card border'
+                    }`}
+                >
+                  {msg.role === 'assistant' ? (
+                    <AssistantMessage content={msg.content} />
+                  ) : (
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  )}
+                </div>
+                {msg.role === 'user' && (
+                  <Avatar className="h-9 w-9 border">
+                    <AvatarImage src={user?.photoURL || undefined} />
+                    <AvatarFallback>
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            ))}
+            {isPending && (
+              <div className="flex items-start gap-4 justify-start">
                 <Avatar className="h-9 w-9 border">
                   <AvatarFallback>
                     <Bot className="h-5 w-5 text-muted-foreground" />
                   </AvatarFallback>
                 </Avatar>
-              )}
-              <div
-                className={`max-w-xl w-full rounded-xl p-4 shadow-sm ${msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border'
-                  }`}
-              >
-                {msg.role === 'assistant' ? (
-                  <AssistantMessage content={msg.content} />
-                ) : (
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
-                )}
-              </div>
-              {msg.role === 'user' && (
-                <Avatar className="h-9 w-9 border">
-                  <AvatarImage src={user?.photoURL || undefined} />
-                  <AvatarFallback>
-                    <User className="h-5 w-5 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
-          ))}
-          {isPending && (
-            <div className="flex items-start gap-4 justify-start">
-              <Avatar className="h-9 w-9 border">
-                <AvatarFallback>
-                  <Bot className="h-5 w-5 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border">
-                <div className="bouncing-loader">
-                  <div></div>
-                  <div></div>
-                  <div></div>
+                <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border">
+                  <div className="bouncing-loader">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </main>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
 
-        <footer className="p-4 bg-transparent w-full max-w-3xl mx-auto">
+        <footer className="p-2 md:p-4 bg-transparent w-full max-w-4xl mx-auto">
           <PromptInputBox
             onSend={handleSendMessage}
             isLoading={isPending}
