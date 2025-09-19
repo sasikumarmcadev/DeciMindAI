@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen, FolderCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
@@ -435,8 +435,7 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    setMessages(prev => [...prev, userMessage]);
     
     const isNewChat = messages.length === 0;
   
@@ -446,7 +445,8 @@ function PageContent({ chatId }: { chatId: string }) {
     }
   
     startTransition(async () => {
-      const result = await getDeciMindResponse(newMessages, message);
+      const currentMessages = [...messages, userMessage];
+      const result = await getDeciMindResponse(currentMessages, message);
       
       let responseContent = 'Sorry, something went wrong.';
       if (result.response) {
