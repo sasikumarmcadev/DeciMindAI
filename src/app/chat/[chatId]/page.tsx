@@ -64,7 +64,7 @@ type Chat = {
 }
 
 function AssistantMessage({ content }: { content: string }) {
-  const displayedContent = useTypewriter(content, 20);
+  const displayedContent = useTypewriter(content, 5);
   return <MarkdownRenderer content={displayedContent} />;
 }
 
