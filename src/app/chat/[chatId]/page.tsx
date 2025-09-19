@@ -78,7 +78,7 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
         animate={{ opacity: 1 }}
         className="font-medium text-black dark:text-white whitespace-pre"
       >
-        Groq Chat
+        DeciMind
       </motion.span>}
     </div>
   );
@@ -99,7 +99,7 @@ function WelcomeAnimation() {
         }}
         containerClassName="text-xl md:text-2xl lg:text-3xl leading-tight"
       >
-        {"Welcome to Groq Chat"}
+        {"Welcome to DeciMind"}
       </VerticalCutReveal>
       <VerticalCutReveal
         splitBy="words"
@@ -444,7 +444,7 @@ function PageContent({ chatId }: { chatId: string }) {
             <SidebarTrigger className="h-10 w-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground" />
           )}
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold font-headline">Groq Chat</h1>
+            <h1 className="text-xl font-bold font-headline">DeciMind</h1>
           </div>
           <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
             <Trash2 className="h-5 w-5" />
@@ -515,7 +515,7 @@ function PageContent({ chatId }: { chatId: string }) {
           <PromptInputBox
             onSend={handleSendMessage}
             isLoading={isPending}
-            placeholder="Message Groq Chat..."
+            placeholder="Message DeciMind..."
             className="bg-background border-border"
           />
         </footer>
