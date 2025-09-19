@@ -156,8 +156,8 @@ function SidebarItems() {
   const handleLogin = async () => {
     const { user, error } = await signInWithGoogle();
     if (error) {
-      if (error.includes('auth/popup-closed-by-user')) {
-        return;
+      if (error === 'The sign-in process was canceled.') {
+        return; 
       }
       console.error("Error signing in with Google:", error);
       toast({

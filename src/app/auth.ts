@@ -8,7 +8,10 @@ export async function signInWithGoogle(): Promise<{ user?: User, error?: string 
   try {
     const result = await signInWithPopup(auth, provider);
     return { user: result.user };
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'auth/popup-closed-by-user') {
+      return { error: 'The sign-in process was canceled.' };
+    }
     return { error: (error as Error).message };
   }
 }
