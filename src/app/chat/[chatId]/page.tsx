@@ -415,8 +415,7 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    setMessages(prev => [...prev, userMessage]);
   
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
@@ -424,7 +423,9 @@ function PageContent({ chatId }: { chatId: string }) {
     }
   
     startTransition(async () => {
-      const result = await getDeciMindResponse(newMessages, message);
+      // Pass the *new* state to the backend, not the old `messages` state
+      const updatedMessages = [...messages, userMessage];
+      const result = await getDeciMindResponse(updatedMessages, message);
       
       let responseContent = 'Sorry, something went wrong.';
       if (result.response) {
@@ -435,9 +436,9 @@ function PageContent({ chatId }: { chatId: string }) {
       
       const assistantMessage: Message = { role: 'assistant', content: responseContent };
       
-      if (chatId.startsWith('guest_')) {
-        setMessages(prev => [...prev, assistantMessage]);
-      } else if (user) {
+      setMessages(prev => [...prev, assistantMessage]);
+
+      if (user && !chatId.startsWith('guest_')) {
         const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
         push(messagesRef, assistantMessage);
       }
