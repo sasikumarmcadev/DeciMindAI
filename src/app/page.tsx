@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { database } from '@/lib/firebase';
-import { ref, push, serverTimestamp } from 'firebase/database';
+import { ref, push, serverTimestamp, set } from 'firebase/database';
 import { Loader2 } from 'lucide-react';
 
 export default function CreateNewChatPage() {
@@ -12,7 +12,11 @@ export default function CreateNewChatPage() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading && user) {
+    if (loading) {
+      return;
+    }
+
+    if (user) {
       const chatsRef = ref(database, `chats/${user.uid}`);
       const newChatRef = push(chatsRef);
       const newChatId = newChatRef.key;
@@ -23,7 +27,7 @@ export default function CreateNewChatPage() {
       };
 
       // Set the initial chat data
-      newChatRef.set(newChatData).then(() => {
+      set(newChatRef, newChatData).then(() => {
         // Redirect to the new chat page
         if (newChatId) {
           router.replace(`/chat/${newChatId}`);
@@ -34,7 +38,7 @@ export default function CreateNewChatPage() {
         // For now, redirecting to a generic chat page or showing an error state might be good.
         router.replace('/'); // Or an error page
       });
-    } else if (!loading && !user) {
+    } else {
       // If user is not logged in, redirect to a landing page or login page
       // For this example, let's assume we want to redirect them to a conceptual login page
       // or just stay on a page that prompts them to log in.
