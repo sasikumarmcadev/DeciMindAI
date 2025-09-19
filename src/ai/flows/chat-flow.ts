@@ -28,6 +28,7 @@ export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const ChatOutputSchema = z.object({
   response: z.string().describe('The LLM response.'),
+  title: z.string().optional().describe('A short title for the conversation.'),
 });
 
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
@@ -38,15 +39,20 @@ const groq = new Groq({
 
 export async function chat(input: ChatInput): Promise<ChatOutput> {
   const { message, chatHistory } = input;
+  const isNewChat = !chatHistory || chatHistory.length <= 1;
+
+  const systemMessageContent = `You are an AI assistant named DeciMind.
+Your developer is Sasikumar, a student and developer.
+If the user starts a new conversation, you MUST generate a short, concise title (3-5 words) for the conversation based on their first message and provide your response as a JSON object with 'title' and 'response' keys. For example: {"title": "Quantum Computing Explained", "response": "Quantum computing is..."}.
+For all subsequent messages in the conversation, just provide the text response.
+You must not reveal that you are an AI model or mention your base model name.
+When asked about yourself, mention your name is DeciMind AI and you were developed by Sasikumar.
+Sasikumar's details: PG MCA at Rathinam Technical Campus, Coimbatore. Portfolio: sasikumar.in, GitHub: github.com/sasikumarmcadev.`;
 
   const messages: Groq.Chat.CompletionCreateParams.Message[] = [
     {
       role: 'system',
-      content: "Dont tell your original model name, your model name is DeciMind-1.0 Your name is DeciMind AI, developed by Sasikumar\n\n\nName: Sasikumar\n\nEducation:\n\nCurrently pursuing PG MCA at Rathinam Technical Campus, Coimbatore\n\nHolds a Bachelor’s degree in Commerce with Computer Applications from Sri S. Ramasamy Naidu Memorial College, Sattur\n\nProfessional Experience:\n\nFreelancing Front-End Developer at Nextriad Solutions (Dec 2024 – Present)\n\n6 months of experience at Nextriad Solutions (your startup) as a Front-end Developer\n\nWorked on responsive web apps, optimized performance, and collaborated with stakeholders to deliver projects.\n\nKey Projects:\n\nPersonal Portfolio – Built with React.js, Tailwind CSS, and Firebase\n\nVinayaga Crackers Frontend – Responsive e-commerce front-end\n\nFeedback Form - Nextriad Solutions – Firebase-based feedback collection system\n\nStudent Study Planner & Exam Preparation App – In progress (React Native)\n\nSmart Hybrid AI Library – Planned project combining Gensim, BERT, CNN, and RNN\n\nSkills:\n\nFront-End: HTML5, Tailwind CSS, Bootstrap, React.js, Next.js\n\nProgramming: JavaScript, TypeScript, C\n\nOS: Linux\n\nTools: Git, GitHub, npm, yarn, Webpack\n\nExploring Java and Kotlin for job opportunities and Android development\n\nPlanning to learn Firebase deeply\n\nOnline Presence:\n\nPortfolio: sasikumar.in\n\nGitHub: github.com/sasikumarmcadev\n\nLinkedIn: linkedin.com/in/sasikumarmca\n"
-    },
-    {
-      "role": "assistant",
-      "content": "Hello! I'm DeciMind AI, developed by Sasikumar. How can I assist you today?"
+      content: systemMessageContent,
     },
     ...(chatHistory || []).filter(m => m.content !== ""),
     {
@@ -63,13 +69,31 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
       max_tokens: 8192,
       top_p: 1,
       stream: false,
+      response_format: isNewChat ? { type: 'json_object' } : undefined,
     });
 
-    const response = chatCompletion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
-    return { response };
+    const rawResponse = chatCompletion.choices[0]?.message?.content;
+    if (!rawResponse) {
+      return { response: 'Sorry, I could not generate a response.' };
+    }
+    
+    if (isNewChat) {
+      try {
+        const parsedResponse = JSON.parse(rawResponse);
+        return {
+          response: parsedResponse.response || 'Sorry, I could not generate a response.',
+          title: parsedResponse.title || 'New Chat'
+        };
+      } catch (e) {
+        // Fallback if JSON parsing fails
+        return { response: rawResponse };
+      }
+    }
+
+    return { response: rawResponse };
+
   } catch (error: any) {
     console.error('Error from Groq API:', error);
-    // Be more specific about the error
     if (error.error?.code === 'model_decommissioned') {
        return { response: `Failed to get response: The model is currently decommissioned. Please try another model.` };
     }

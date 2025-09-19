@@ -10,11 +10,11 @@ export async function getDeciMindResponse(
   message: string
 ) {
   try {
-    const response = await chat({
+    const result = await chat({
       message,
       chatHistory,
     });
-    return { response: response.response };
+    return { response: result.response, title: result.title };
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';

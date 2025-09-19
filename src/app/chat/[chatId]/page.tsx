@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useTransition, use } from 'react';
+import { useState, useRef, useEffect, useTransition } from 'react';
 import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -49,7 +49,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRouter } from 'next/navigation';
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, push, serverTimestamp, remove, set } from 'firebase/database';
+import { ref, onValue, off, push, serverTimestamp, remove, set, update } from 'firebase/database';
 
 
 type Message = {
@@ -160,7 +160,7 @@ function SidebarItems() {
   useEffect(() => {
     if (user) {
       const chatsRef = ref(database, `chats/${user.uid}`);
-      onValue(chatsRef, (snapshot) => {
+      const unsubscribe = onValue(chatsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
           const chatList = Object.entries(data).map(([id, chat]: [string, any]) => ({
@@ -174,9 +174,9 @@ function SidebarItems() {
         }
       });
 
-      return () => {
-        off(chatsRef);
-      };
+      return () => unsubscribe();
+    } else {
+      setChats([]);
     }
   }, [user]);
 
@@ -186,17 +186,16 @@ function SidebarItems() {
       const newChatRef = push(chatsRef);
       const newChatId = newChatRef.key;
 
-      const newChatData = {
-        createdAt: serverTimestamp(),
-        title: 'New Chat',
-      };
-      
-      await set(newChatRef, newChatData);
       if (newChatId) {
+        const newChatData = {
+          createdAt: serverTimestamp(),
+          title: 'New Chat',
+        };
+        
+        await set(newChatRef, newChatData);
         router.push(`/chat/${newChatId}`);
       }
     } else {
-      // For guest users, create a temporary ID and navigate
       const newChatId = `guest_${new Date().getTime()}`;
       router.push(`/chat/${newChatId}`);
     }
@@ -386,17 +385,14 @@ function PageContent({ chatId }: { chatId: string }) {
   const { user, loading } = useAuth();
   const isMobile = useIsMobile();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { isOpen } = useSidebar();
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     if (loading) return;
 
-    // If the user logs in while on a guest chat, redirect them to create a new chat
     if (user && chatId.startsWith('guest_')) {
-      const newChatId = `user_${user.uid}_${new Date().getTime()}`;
-      router.push(`/chat/${newChatId}`);
+      router.push('/');
       return;
     }
 
@@ -404,8 +400,6 @@ function PageContent({ chatId }: { chatId: string }) {
     if (user && !chatId.startsWith('guest_')) {
       dbRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
     } else {
-      // For guest users, we only keep messages in local state.
-      // If we switch from a real chat to a guest chat, clear messages.
       setMessages([]);
     }
 
@@ -413,16 +407,12 @@ function PageContent({ chatId }: { chatId: string }) {
       const unsubscribe = onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
         setMessages(data ? Object.values(data) : []);
+      }, (error) => {
+        console.error(error);
+        setMessages([]);
       });
 
-      return () => {
-        off(dbRef);
-      }
-    } else {
-      // Clean up previous listeners if we move to a guest chat
-      // This is a bit of a workaround for the onValue not being in a single effect
-      // A better refactor might involve a custom hook for chat data.
-      return () => {};
+      return () => unsubscribe();
     }
   }, [chatId, user, loading, router]);
 
@@ -445,9 +435,10 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
-    
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
+    
+    const isNewChat = messages.length === 0;
   
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
@@ -470,6 +461,11 @@ function PageContent({ chatId }: { chatId: string }) {
       if (user && !chatId.startsWith('guest_')) {
         const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
         push(messagesRef, assistantMessage);
+        
+        if (isNewChat && result.title) {
+          const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
+          update(chatRef, { title: result.title });
+        }
       }
     });
   };
