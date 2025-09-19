@@ -1,5 +1,5 @@
 import React from 'react';
-import { CodeBlock } from '@/components/code-block';
+import { CodeBlock } from '@/components/ui/code-block';
 
 export function MarkdownRenderer({ content }: { content: string }) {
   if (!content) return null;
