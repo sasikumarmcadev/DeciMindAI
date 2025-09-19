@@ -415,20 +415,16 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
   
-    // For guest users, just update local state
-    if (chatId.startsWith('guest_')) {
-      setMessages(prev => [...prev, userMessage]);
-    } else if (user) {
-      // For logged-in users, push to DB which will trigger onValue
+    if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
       push(messagesRef, userMessage);
     }
   
     startTransition(async () => {
-      // We pass the current messages + the new user message to get the response
-      const chatHistory = [...messages, userMessage];
-      const result = await getDeciMindResponse(chatHistory, message);
+      const result = await getDeciMindResponse(newMessages, message);
       
       let responseContent = 'Sorry, something went wrong.';
       if (result.response) {
