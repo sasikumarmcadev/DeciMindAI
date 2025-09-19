@@ -445,7 +445,9 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
-    setMessages(prev => [...prev, userMessage]);
+    
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
   
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
@@ -453,8 +455,7 @@ function PageContent({ chatId }: { chatId: string }) {
     }
   
     startTransition(async () => {
-      const currentChatHistory = [...messages, userMessage];
-      const result = await getDeciMindResponse(currentChatHistory, message);
+      const result = await getDeciMindResponse(newMessages, message);
       
       let responseContent = 'Sorry, something went wrong.';
       if (result.response) {
