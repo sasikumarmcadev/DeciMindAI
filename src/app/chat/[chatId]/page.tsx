@@ -572,7 +572,7 @@ function PageContent({ chatId }: { chatId: string }) {
 }
 
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
-  const { chatId } = params;
+  const { chatId } = use(Promise.resolve(params));
   return (
     <SidebarProvider>
       <PageContent chatId={chatId} />
