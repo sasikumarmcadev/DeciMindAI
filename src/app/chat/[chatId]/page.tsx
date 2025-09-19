@@ -22,7 +22,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/blocks/sidebar"
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, AuthProvider } from '@/hooks/use-auth';
 import { signInWithGoogle, signOut } from '@/app/auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -529,8 +529,10 @@ function PageContent({ chatId }: { chatId: string }) {
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
   const resolvedParams = use(params);
   return (
-    <SidebarProvider>
-      <PageContent chatId={resolvedParams.chatId} />
-    </SidebarProvider>
+    <AuthProvider>
+      <SidebarProvider>
+        <PageContent chatId={resolvedParams.chatId} />
+      </SidebarProvider>
+    </AuthProvider>
   );
 }
