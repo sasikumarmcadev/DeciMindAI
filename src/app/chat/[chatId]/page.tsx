@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition, use } from 'react';
-import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
@@ -85,8 +85,29 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
   );
 };
 
+const SuggestionCard = ({ icon, text, onClick }: { icon: React.ReactNode, text: string, onClick: () => void }) => (
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
+      className="bg-card p-4 rounded-lg border cursor-pointer hover:bg-accent transition-colors"
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-primary">
+            {icon}
+        </div>
+        <p className="text-sm text-left text-foreground">{text}</p>
+      </div>
+    </motion.div>
+  );
 
-function WelcomeAnimation() {
+function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestion: string) => void }) {
+  const suggestions = [
+    { icon: <Lightbulb className="w-5 h-5" />, text: "Explain quantum computing in simple terms" },
+    { icon: <Code className="w-5 h-5" />, text: "Write a python script to sort a list" },
+    { icon: <Pen className="w-5 h-5" />, text: "Draft an email to a new client" },
+    { icon: <Bot className="w-5 h-5" />, text: "Tell me a fun fact about the universe" },
+  ];
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary">
       <VerticalCutReveal
@@ -116,6 +137,15 @@ function WelcomeAnimation() {
       >
         {"I'm your advanced AI assistant, ready to help with questions, creative tasks, and more. How can I assist you today?"}
       </VerticalCutReveal>
+       <motion.div 
+        className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0, transition: { delay: 1.2, duration: 0.5 } }}
+      >
+        {suggestions.map((s, i) => (
+          <SuggestionCard key={i} icon={s.icon} text={s.text} onClick={() => onSuggestionClick(s.text)} />
+        ))}
+      </motion.div>
     </div>
   );
 }
@@ -415,8 +445,7 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    setMessages(prev => [...prev, userMessage]);
   
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
@@ -424,7 +453,8 @@ function PageContent({ chatId }: { chatId: string }) {
     }
   
     startTransition(async () => {
-      const result = await getDeciMindResponse(updatedMessages, message);
+      const currentChatHistory = [...messages, userMessage];
+      const result = await getDeciMindResponse(currentChatHistory, message);
       
       let responseContent = 'Sorry, something went wrong.';
       if (result.response) {
@@ -505,7 +535,7 @@ function PageContent({ chatId }: { chatId: string }) {
           <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
             {messages.length === 0 && !isPending && (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <WelcomeAnimation />
+                <WelcomeAnimation onSuggestionClick={handleSendMessage} />
               </div>
             )}
             {messages.map((msg, index) => (
