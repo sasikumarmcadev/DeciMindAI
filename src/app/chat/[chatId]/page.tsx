@@ -160,16 +160,18 @@ function SidebarItems() {
         createdAt: serverTimestamp(),
         title: 'New Chat',
       };
-
+      
       await set(newChatRef, newChatData);
       if (newChatId) {
         router.push(`/chat/${newChatId}`);
       }
     } else {
+      // For guest users, create a temporary ID and navigate
       const newChatId = `guest_${new Date().getTime()}`;
       router.push(`/chat/${newChatId}`);
     }
   };
+
 
   const handleLogin = async () => {
     const { user, error } = await signInWithGoogle();
@@ -363,20 +365,22 @@ function PageContent({ chatId }: { chatId: string }) {
 
     // If the user logs in while on a guest chat, redirect them to create a new chat
     if (user && chatId.startsWith('guest_')) {
-      router.push('/');
+      const newChatId = `user_${user.uid}_${new Date().getTime()}`;
+      router.push(`/chat/${newChatId}`);
       return;
     }
 
     let dbRef;
-    if (user) {
+    if (user && !chatId.startsWith('guest_')) {
       dbRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
     } else {
-      // For guest users, we don't fetch from DB, messages are in-memory.
-      // This part could be adjusted if we want guests to have temporary DB storage.
+      // For guest users, we only keep messages in local state.
+      // If we switch from a real chat to a guest chat, clear messages.
+      setMessages([]);
     }
 
     if (dbRef) {
-      onValue(dbRef, (snapshot) => {
+      const unsubscribe = onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
         setMessages(data ? Object.values(data) : []);
       });
@@ -384,6 +388,11 @@ function PageContent({ chatId }: { chatId: string }) {
       return () => {
         off(dbRef);
       }
+    } else {
+      // Clean up previous listeners if we move to a guest chat
+      // This is a bit of a workaround for the onValue not being in a single effect
+      // A better refactor might involve a custom hook for chat data.
+      return () => {};
     }
   }, [chatId, user, loading, router]);
 
@@ -417,7 +426,8 @@ function PageContent({ chatId }: { chatId: string }) {
     }
   
     startTransition(async () => {
-      const chatHistory = messages;
+      // We pass the current messages + the new user message to get the response
+      const chatHistory = [...messages, userMessage];
       const result = await getDeciMindResponse(chatHistory, message);
       
       let responseContent = 'Sorry, something went wrong.';
@@ -532,7 +542,7 @@ function PageContent({ chatId }: { chatId: string }) {
                     )}
                   </div>
                   {msg.role === 'assistant' && (
-                    <div className="flex items-center justify-end px-2 pt-2 gap-2 text-muted-foreground">
+                    <div className="flex items-center justify-end px-2 pt-2 gap-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(msg.content)}>
                         <Copy className="h-4 w-4" />
                       </Button>
@@ -588,13 +598,10 @@ function PageContent({ chatId }: { chatId: string }) {
   )
 }
 
-export default function DeciMindPage({ params }: { params: { chatId: string } }) {
-  const { chatId } = use(Promise.resolve(params));
+export default function DeciMindPage({ params: { chatId } }: { params: { chatId: string } }) {
   return (
     <SidebarProvider>
       <PageContent chatId={chatId} />
     </SidebarProvider>
   );
 }
-
-    
