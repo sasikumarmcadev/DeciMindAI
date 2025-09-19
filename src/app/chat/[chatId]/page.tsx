@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useState, useRef, useEffect, useTransition, use } from 'react';
-import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
@@ -48,7 +49,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRouter } from 'next/navigation';
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, push, serverTimestamp, remove } from 'firebase/database';
+import { ref, onValue, off, push, serverTimestamp, remove, set } from 'firebase/database';
 
 
 type Message = {
@@ -338,22 +339,34 @@ function PageContent({ chatId }: { chatId: string }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { isOpen } = useSidebar();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (loading) return;
-    if (!user && !chatId.startsWith('guest_')) {
+
+    // If the user logs in while on a guest chat, redirect them to create a new chat
+    if (user && chatId.startsWith('guest_')) {
       router.push('/');
       return;
     }
 
-    const messagesRef = ref(database, `chats/${user?.uid}/${chatId}/messages`);
-    onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-      setMessages(data ? Object.values(data) : []);
-    });
+    let dbRef;
+    if (user) {
+      dbRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
+    } else {
+      // For guest users, we don't fetch from DB, messages are in-memory.
+      // This part could be adjusted if we want guests to have temporary DB storage.
+    }
 
-    return () => {
-      off(messagesRef);
+    if (dbRef) {
+      onValue(dbRef, (snapshot) => {
+        const data = snapshot.val();
+        setMessages(data ? Object.values(data) : []);
+      });
+
+      return () => {
+        off(dbRef);
+      }
     }
   }, [chatId, user, loading, router]);
 
@@ -374,15 +387,18 @@ function PageContent({ chatId }: { chatId: string }) {
 
   const handleSendMessage = (message: string, files?: File[]) => {
     if (!message.trim() && (!files || files.length === 0)) return;
-
+  
     const userMessage: Message = { role: 'user', content: message };
-    setMessages(prev => [...prev, userMessage]);
-
-    if (user && !chatId.startsWith('guest_')) {
+  
+    // For guest users, just update local state
+    if (chatId.startsWith('guest_')) {
+      setMessages(prev => [...prev, userMessage]);
+    } else if (user) {
+      // For logged-in users, push to DB which will trigger onValue
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
       push(messagesRef, userMessage);
     }
-
+  
     startTransition(async () => {
       const chatHistory = messages;
       const result = await getDeciMindResponse(chatHistory, message);
@@ -395,9 +411,10 @@ function PageContent({ chatId }: { chatId: string }) {
       }
       
       const assistantMessage: Message = { role: 'assistant', content: responseContent };
-      setMessages(prev => [...prev, assistantMessage]);
-
-      if (user && !chatId.startsWith('guest_')) {
+      
+      if (chatId.startsWith('guest_')) {
+        setMessages(prev => [...prev, assistantMessage]);
+      } else if (user) {
         const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
         push(messagesRef, assistantMessage);
       }
@@ -405,12 +422,23 @@ function PageContent({ chatId }: { chatId: string }) {
   };
 
   const handleClear = () => {
-    if (user && chatId) {
+    if (user && chatId && !chatId.startsWith('guest_')) {
       const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
       remove(chatRef).then(() => {
         router.push('/');
       });
+    } else if (chatId.startsWith('guest_')) {
+      setMessages([]);
+      router.push('/');
     }
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({ title: "Copied to clipboard!" });
+    }).catch(err => {
+      toast({ title: "Failed to copy", description: "Could not copy text.", variant: "destructive" });
+    });
   };
 
   return (
@@ -472,15 +500,32 @@ function PageContent({ chatId }: { chatId: string }) {
                   </Avatar>
                 )}
                 <div
-                  className={`max-w-lg md:max-w-xl lg:max-w-2xl w-full rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-card border'
-                    }`}
+                  className={`max-w-lg md:max-w-xl lg:max-w-2xl w-full group`}
                 >
-                  {msg.role === 'assistant' ? (
-                    <AssistantMessage content={msg.content} />
-                  ) : (
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  <div
+                    className={`rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card border'
+                      }`}
+                  >
+                    {msg.role === 'assistant' ? (
+                      <AssistantMessage content={msg.content} />
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    )}
+                  </div>
+                  {msg.role === 'assistant' && (
+                    <div className="flex items-center justify-end px-2 pt-2 gap-2 text-muted-foreground">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(msg.content)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
                 {msg.role === 'user' && (
@@ -527,7 +572,7 @@ function PageContent({ chatId }: { chatId: string }) {
 }
 
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
-  const { chatId } = use(params);
+  const { chatId } = params;
   return (
     <SidebarProvider>
       <PageContent chatId={chatId} />
