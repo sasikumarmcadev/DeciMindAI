@@ -415,7 +415,8 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
   
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
@@ -423,8 +424,6 @@ function PageContent({ chatId }: { chatId: string }) {
     }
   
     startTransition(async () => {
-      // Pass the *new* state to the backend, not the old `messages` state
-      const updatedMessages = [...messages, userMessage];
       const result = await getDeciMindResponse(updatedMessages, message);
       
       let responseContent = 'Sorry, something went wrong.';
@@ -435,7 +434,6 @@ function PageContent({ chatId }: { chatId: string }) {
       }
       
       const assistantMessage: Message = { role: 'assistant', content: responseContent };
-      
       setMessages(prev => [...prev, assistantMessage]);
 
       if (user && !chatId.startsWith('guest_')) {
@@ -524,7 +522,7 @@ function PageContent({ chatId }: { chatId: string }) {
                   </Avatar>
                 )}
                 <div
-                  className={`max-w-lg md:max-w-xl lg:max-w-2xl w-full group`}
+                  className={`max-w-lg md:max-w-xl lg:max-w-2xl group`}
                 >
                   <div
                     className={`rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
