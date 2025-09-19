@@ -58,7 +58,7 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: messages.filter(m => m.content !== ""),
-      model: 'llama-3.1-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       temperature: 1,
       max_tokens: 8192,
       top_p: 1,
