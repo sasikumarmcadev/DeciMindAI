@@ -110,8 +110,9 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
     { icon: <Bot className="w-5 h-5" />, text: "Tell me a fun fact about the universe" },
   ];
   return (
-    <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative">
+    <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative overflow-hidden">
         <Aurora
+            className="absolute inset-0 -z-10"
             colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
             blend={0.5}
             amplitude={1.0}
