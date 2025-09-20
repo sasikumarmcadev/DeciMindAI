@@ -111,12 +111,20 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
   ];
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-            <div style={{ width: '100%', height: '400px', position: 'relative' }}>
+        <div className="absolute inset-0 -z-10 flex items-center justify-center">
+            <div style={{ width: '50%', height: '400px', position: 'relative' }}>
                 <Orb
                     hoverIntensity={0.5}
                     rotateOnHover={true}
                     hue={0}
+                    forceHoverState={false}
+                />
+            </div>
+            <div style={{ width: '50%', height: '400px', position: 'relative' }}>
+                <Orb
+                    hoverIntensity={0.5}
+                    rotateOnHover={true}
+                    hue={90}
                     forceHoverState={false}
                 />
             </div>
