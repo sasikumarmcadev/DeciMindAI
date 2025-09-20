@@ -50,6 +50,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useRouter } from 'next/navigation';
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, push, serverTimestamp, remove, set, update } from 'firebase/database';
+import Aurora from '@/components/ui/aurora';
 
 
 type Message = {
@@ -110,6 +111,12 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
   ];
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative">
+        <Aurora
+            colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
+            blend={0.5}
+            amplitude={1.0}
+            speed={0.5}
+          />
       <div className="z-10">
         <VerticalCutReveal
           splitBy="lines"
@@ -389,6 +396,31 @@ function PageContent({ chatId }: { chatId: string }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const [feedback, setFeedback] = useState<{ [key: string]: 'like' | 'dislike' | null }>({});
+
+  const handleFeedback = (messageId: string, newFeedback: 'like' | 'dislike') => {
+    if (user && !chatId.startsWith('guest_')) {
+        const feedbackRef = ref(database, `chats/${user.uid}/${chatId}/messages/${messageId}/feedback`);
+        const currentFeedback = feedback[messageId];
+
+        if (currentFeedback === newFeedback) {
+            // User clicks the same button again, remove feedback
+            remove(feedbackRef);
+            setFeedback(prev => ({...prev, [messageId]: null}));
+        } else {
+            // Set new feedback
+            set(feedbackRef, newFeedback);
+            setFeedback(prev => ({...prev, [messageId]: newFeedback}));
+        }
+    } else {
+        toast({
+            title: 'Login to save feedback',
+            description: 'Please log in to make your feedback count!',
+            variant: 'default',
+        });
+    }
+  };
+
 
   useEffect(() => {
     if (loading) return;
@@ -408,7 +440,21 @@ function PageContent({ chatId }: { chatId: string }) {
     if (dbRef) {
       const unsubscribe = onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
-        setMessages(data ? Object.values(data) : []);
+        if (data) {
+            const msgs: Message[] = [];
+            const newFeedback: { [key: string]: 'like' | 'dislike' } = {};
+            Object.entries(data).forEach(([id, msgData]: [string, any]) => {
+                msgs.push({ id, ...msgData });
+                if (msgData.feedback) {
+                    newFeedback[id] = msgData.feedback;
+                }
+            });
+            setMessages(msgs);
+            setFeedback(newFeedback);
+        } else {
+            setMessages([]);
+            setFeedback({});
+        }
       }, (error) => {
         console.error(error);
         setMessages([]);
@@ -437,18 +483,19 @@ function PageContent({ chatId }: { chatId: string }) {
     if (!message.trim() && (!files || files.length === 0)) return;
   
     const userMessage: Message = { role: 'user', content: message };
-    setMessages(prev => [...prev, userMessage]);
     
     const isNewChat = messages.length === 0;
   
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
       push(messagesRef, userMessage);
+    } else {
+      setMessages(prev => [...prev, userMessage]);
     }
   
     startTransition(async () => {
-      const currentMessages = [...messages, userMessage];
-      const result = await getDeciMindResponse(currentMessages, message);
+      const currentHistory = messages.map(({role, content}) => ({role, content}));
+      const result = await getDeciMindResponse(currentHistory, message);
       
       let responseContent = 'Sorry, something went wrong.';
       if (result.response) {
@@ -458,7 +505,6 @@ function PageContent({ chatId }: { chatId: string }) {
       }
       
       const assistantMessage: Message = { role: 'assistant', content: responseContent };
-      setMessages(prev => [...prev, assistantMessage]);
 
       if (user && !chatId.startsWith('guest_')) {
         const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
@@ -468,6 +514,8 @@ function PageContent({ chatId }: { chatId: string }) {
           const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
           update(chatRef, { title: result.title });
         }
+      } else {
+        setMessages(prev => [...prev, userMessage, assistantMessage]);
       }
     });
   };
@@ -570,10 +618,20 @@ function PageContent({ chatId }: { chatId: string }) {
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(msg.content)}>
                         <Copy className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className={cn("h-7 w-7", feedback[msg.id] === 'like' && 'text-primary bg-accent')}
+                        onClick={() => handleFeedback(msg.id, 'like')}
+                      >
                         <ThumbsUp className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className={cn("h-7 w-7", feedback[msg.id] === 'dislike' && 'text-destructive bg-destructive/10')}
+                        onClick={() => handleFeedback(msg.id, 'dislike')}
+                      >
                         <ThumbsDown className="h-4 w-4" />
                       </Button>
                     </div>
@@ -596,12 +654,8 @@ function PageContent({ chatId }: { chatId: string }) {
                     <Bot className="h-5 w-5 text-muted-foreground" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border">
-                  <div className="bouncing-loader">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                  </div>
+                <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border flex items-center justify-center min-h-[60px]">
+                    <div className="pulsing-loader" />
                 </div>
               </div>
             )}
