@@ -111,14 +111,29 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
   ];
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative overflow-hidden">
-      <div style={{ width: '100%', height: '600px', position: 'relative' }}>
-        <Orb
-          hoverIntensity={0.5}
-          rotateOnHover={true}
-          hue={0}
-          forceHoverState={false}
-        />
-      </div>
+        <div className="absolute inset-0 -z-10">
+            <div style={{ width: '100%', height: '400px', position: 'relative' }}>
+                <Orb
+                    hoverIntensity={0.5}
+                    rotateOnHover={true}
+                    hue={0}
+                    forceHoverState={false}
+                />
+            </div>
+        </div>
+        <div className="z-10 flex flex-col items-center">
+            <h1 className="text-4xl md:text-5xl font-bold max-w-2xl mb-4">
+                <VerticalCutReveal>Hello, how can I help you today?</VerticalCutReveal>
+            </h1>
+            <p className="text-foreground/70 max-w-lg mb-8">
+                I can help you with a variety of tasks. Here are some suggestions to get started:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-xl w-full">
+                {suggestions.map((s, i) => (
+                    <SuggestionCard key={i} icon={s.icon} text={s.text} onClick={() => onSuggestionClick(s.text)} />
+                ))}
+            </div>
+        </div>
     </div>
   );
 }
