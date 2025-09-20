@@ -130,7 +130,7 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
             </div>
         </div>
         <div className="z-10 flex flex-col items-center">
-            <h1 className="text-4xl md:text-5xl font-bold max-w-2xl mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold max-w-2xl mb-4">
                 <VerticalCutReveal>Hello, how can I help you today?</VerticalCutReveal>
             </h1>
             <p className="text-foreground/70 max-w-lg mb-8">
