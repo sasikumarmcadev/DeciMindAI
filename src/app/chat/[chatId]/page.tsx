@@ -50,7 +50,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useRouter } from 'next/navigation';
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, push, serverTimestamp, remove, set, update } from 'firebase/database';
-import Aurora from '@/components/ui/aurora';
+import Orb from '@/components/ui/Orb';
 
 
 type Message = {
@@ -111,50 +111,13 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
   ];
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative overflow-hidden">
-        <Aurora
-            className="absolute inset-0 -z-10"
-            colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
-            blend={0.5}
-            amplitude={1.0}
-            speed={0.5}
-          />
-      <div className="z-10">
-        <VerticalCutReveal
-          splitBy="lines"
-          staggerDuration={0.1}
-          staggerFrom="first"
-          transition={{
-            type: "spring",
-            stiffness: 200,
-            damping: 25,
-          }}
-          containerClassName="text-xl md:text-2xl lg:text-3xl leading-tight"
-        >
-          {"Welcome to DeciMind"}
-        </VerticalCutReveal>
-        <VerticalCutReveal
-          splitBy="words"
-          staggerDuration={0.05}
-          staggerFrom="first"
-          transition={{
-            type: "spring",
-            stiffness: 200,
-            damping: 25,
-            delay: 0.7,
-          }}
-          containerClassName="mt-4 text-sm md:text-base lg:text-lg text-foreground/80 max-w-2xl"
-        >
-          {"I'm your advanced AI assistant, ready to help with questions, creative tasks, and more. How can I assist you today?"}
-        </VerticalCutReveal>
-        <motion.div 
-          className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0, transition: { delay: 1.2, duration: 0.5 } }}
-        >
-          {suggestions.map((s, i) => (
-            <SuggestionCard key={i} icon={s.icon} text={s.text} onClick={() => onSuggestionClick(s.text)} />
-          ))}
-        </motion.div>
+      <div style={{ width: '100%', height: '600px', position: 'relative' }}>
+        <Orb
+          hoverIntensity={0.5}
+          rotateOnHover={true}
+          hue={0}
+          forceHoverState={false}
+        />
       </div>
     </div>
   );
