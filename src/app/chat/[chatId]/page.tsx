@@ -89,7 +89,7 @@ const SuggestionCard = ({ icon, text, onClick }: { icon: React.ReactNode, text: 
     <motion.div
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
-      className="bg-card p-4 rounded-lg border cursor-pointer hover:bg-accent transition-colors"
+      className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border/20 cursor-pointer hover:bg-accent/20 transition-colors"
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
@@ -109,43 +109,45 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
     { icon: <Bot className="w-5 h-5" />, text: "Tell me a fun fact about the universe" },
   ];
   return (
-    <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary">
-      <VerticalCutReveal
-        splitBy="lines"
-        staggerDuration={0.1}
-        staggerFrom="first"
-        transition={{
-          type: "spring",
-          stiffness: 200,
-          damping: 25,
-        }}
-        containerClassName="text-xl md:text-2xl lg:text-3xl leading-tight"
-      >
-        {"Welcome to DeciMind"}
-      </VerticalCutReveal>
-      <VerticalCutReveal
-        splitBy="words"
-        staggerDuration={0.05}
-        staggerFrom="first"
-        transition={{
-          type: "spring",
-          stiffness: 200,
-          damping: 25,
-          delay: 0.7,
-        }}
-        containerClassName="mt-4 text-sm md:text-base lg:text-lg text-foreground/80 max-w-2xl"
-      >
-        {"I'm your advanced AI assistant, ready to help with questions, creative tasks, and more. How can I assist you today?"}
-      </VerticalCutReveal>
-       <motion.div 
-        className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0, transition: { delay: 1.2, duration: 0.5 } }}
-      >
-        {suggestions.map((s, i) => (
-          <SuggestionCard key={i} icon={s.icon} text={s.text} onClick={() => onSuggestionClick(s.text)} />
-        ))}
-      </motion.div>
+    <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative">
+      <div className="z-10">
+        <VerticalCutReveal
+          splitBy="lines"
+          staggerDuration={0.1}
+          staggerFrom="first"
+          transition={{
+            type: "spring",
+            stiffness: 200,
+            damping: 25,
+          }}
+          containerClassName="text-xl md:text-2xl lg:text-3xl leading-tight"
+        >
+          {"Welcome to DeciMind"}
+        </VerticalCutReveal>
+        <VerticalCutReveal
+          splitBy="words"
+          staggerDuration={0.05}
+          staggerFrom="first"
+          transition={{
+            type: "spring",
+            stiffness: 200,
+            damping: 25,
+            delay: 0.7,
+          }}
+          containerClassName="mt-4 text-sm md:text-base lg:text-lg text-foreground/80 max-w-2xl"
+        >
+          {"I'm your advanced AI assistant, ready to help with questions, creative tasks, and more. How can I assist you today?"}
+        </VerticalCutReveal>
+        <motion.div 
+          className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0, transition: { delay: 1.2, duration: 0.5 } }}
+        >
+          {suggestions.map((s, i) => (
+            <SuggestionCard key={i} icon={s.icon} text={s.text} onClick={() => onSuggestionClick(s.text)} />
+          ))}
+        </motion.div>
+      </div>
     </div>
   );
 }
