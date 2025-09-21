@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 export function useTypewriter(text: string, speed: number = 20) {
-  const [displayText, setDisplayText] = useState(text ? text.charAt(0) : '');
+  const [displayText, setDisplayText] = useState('');
 
   useEffect(() => {
     if (!text) {
@@ -11,9 +11,9 @@ export function useTypewriter(text: string, speed: number = 20) {
       return;
     }
 
-    setDisplayText(text.charAt(0));
+    setDisplayText(''); // Start with an empty string
 
-    let i = 1;
+    let i = 0; // Start from the first character
     const timer = setInterval(() => {
       if (i < text.length) {
         setDisplayText(prev => prev + text.charAt(i));

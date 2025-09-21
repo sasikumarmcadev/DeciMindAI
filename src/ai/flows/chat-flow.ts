@@ -82,7 +82,7 @@ For all subsequent messages, just provide the text response.`;
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: messages.filter(m => m.content !== ""),
-      model: 'llama3-8b-8192',
+      model: 'deepseek-r1-distill-llama-70b',
       temperature: 1,
       max_tokens: 8192,
       top_p: 1,
