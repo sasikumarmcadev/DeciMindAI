@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useState, useRef, useEffect, useTransition, use } from 'react';
-import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen, FolderCode } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen, FolderCode, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
@@ -51,6 +52,7 @@ import { useRouter } from 'next/navigation';
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, push, serverTimestamp, remove, set, update } from 'firebase/database';
 import Orb from '@/components/ui/Orb';
+import { Input } from '@/components/ui/input';
 
 
 type Message = {
@@ -367,6 +369,8 @@ function PageContent({ chatId }: { chatId: string }) {
   const { toast } = useToast();
   const [feedback, setFeedback] = useState<{ [key: string]: 'like' | 'dislike' | null }>({});
   const { theme } = useTheme();
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
 
   const handleFeedback = (messageId: string, newFeedback: 'like' | 'dislike') => {
     if (user && !chatId.startsWith('guest_')) {
@@ -507,6 +511,61 @@ function PageContent({ chatId }: { chatId: string }) {
       toast({ title: "Failed to copy", description: "Could not copy text.", variant: "destructive" });
     });
   };
+
+  const handleEdit = (message: Message) => {
+    setEditingMessageId(message.id);
+    setEditingContent(message.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditingContent('');
+  };
+
+  const handleSaveEdit = async (messageId: string) => {
+    if (!user || chatId.startsWith('guest_') || !editingContent.trim()) {
+      handleCancelEdit();
+      return;
+    }
+
+    const messageRef = ref(database, `chats/${user.uid}/${chatId}/messages/${messageId}`);
+    await update(messageRef, { content: editingContent });
+
+    const editedMessageIndex = messages.findIndex(msg => msg.id === messageId);
+    if (editedMessageIndex === -1) {
+      handleCancelEdit();
+      return;
+    }
+
+    // Remove all subsequent messages
+    const subsequentMessages = messages.slice(editedMessageIndex + 1);
+    for (const msg of subsequentMessages) {
+      const msgRef = ref(database, `chats/${user.uid}/${chatId}/messages/${msg.id}`);
+      await remove(msgRef);
+    }
+    
+    setEditingMessageId(null);
+    setEditingContent('');
+
+    startTransition(async () => {
+      const currentHistory = messages.slice(0, editedMessageIndex + 1).map(({role}, index) => ({
+        role,
+        content: index === editedMessageIndex ? editingContent : messages[index].content
+      }));
+      
+      const result = await getDeciMindResponse(currentHistory, editingContent);
+      
+      let responseContent = 'Sorry, something went wrong.';
+      if (result.response) {
+        responseContent = result.response;
+      } else if (result.error) {
+        responseContent = result.error;
+      }
+      
+      const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
+      push(messagesRef, { role: 'assistant', content: responseContent });
+    });
+  };
   
   const isEmpty = messages.length === 0 && !isPending;
 
@@ -555,7 +614,7 @@ function PageContent({ chatId }: { chatId: string }) {
             </div>
           ) : (
             <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 w-full">
-              {messages.map((msg) => (
+              {messages.map((msg, index) => (
                 <div
                   key={msg.id}
                   className={`flex items-start gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'
@@ -592,10 +651,30 @@ function PageContent({ chatId }: { chatId: string }) {
                           </div>
                           <AssistantMessage content={msg.content} />
                         </>
+                      ) : editingMessageId === msg.id ? (
+                        <div className="space-y-2">
+                           <Input 
+                              value={editingContent}
+                              onChange={(e) => setEditingContent(e.target.value)}
+                              className="bg-transparent text-primary-foreground placeholder-primary-foreground/70"
+                              onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(msg.id)}
+                            />
+                           <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleCancelEdit}><X className="h-4 w-4" /></Button>
+                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => handleSaveEdit(msg.id)}><Save className="h-4 w-4" /></Button>
+                           </div>
+                        </div>
                       ) : (
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       )}
                     </div>
+                     {msg.role === 'user' && !editingMessageId && (
+                      <div className="flex items-center justify-end px-2 pt-2 gap-1 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-8 right-0">
+                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-accent" onClick={() => handleEdit(msg)}>
+                           <Pen className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     )}
                     {msg.role === 'assistant' && (
                       <div className="flex items-center justify-end px-2 pt-2 gap-1 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-8 right-0">
                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-accent" onClick={() => handleCopy(msg.content)}>
@@ -667,3 +746,4 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
     </SidebarProvider>
   );
 }
+
