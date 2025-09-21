@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+
 
 export function CodeBlock({
   language,
@@ -46,9 +49,23 @@ export function CodeBlock({
           <span className="sr-only">Copy code</span>
         </Button>
       </div>
-      <pre className="p-4 overflow-x-auto">
-        <code>{code}</code>
-      </pre>
+       <SyntaxHighlighter
+          language={language}
+          style={oneDark}
+          customStyle={{
+            margin: 0,
+            padding: '1rem',
+            backgroundColor: '#0f172a',
+            borderRadius: '0 0 0.5rem 0.5rem'
+          }}
+          codeTagProps={{
+            style: {
+              fontFamily: 'var(--font-code)',
+            },
+          }}
+        >
+          {code}
+        </SyntaxHighlighter>
     </div>
   );
 }

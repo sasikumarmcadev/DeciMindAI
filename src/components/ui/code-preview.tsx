@@ -2,18 +2,19 @@
 "use client";
 
 import React, { useState } from 'react';
-import { CodeBlock } from '@/components/ui/code-block';
+import { CodeBlock } from '@/components/code-block';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Eye, Code, FolderCode, Expand } from 'lucide-react';
+import { Eye, Code, FolderCode, Expand, Zap } from 'lucide-react';
 
 interface CodePreviewProps {
   htmlCode?: string;
   cssCode?: string;
+  jsCode?: string;
 }
 
-export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode = '' }) => {
+export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode = '', jsCode = '' }) => {
   const [activeTab, setActiveTab] = useState('preview');
 
   const combinedCode = `
@@ -26,12 +27,16 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode
       </head>
       <body>
         ${htmlCode}
+        <script>
+          ${jsCode}
+        </script>
       </body>
     </html>
   `;
   
   const hasHtml = htmlCode.trim() !== '';
   const hasCss = cssCode.trim() !== '';
+  const hasJs = jsCode.trim() !== '';
 
   return (
     <div className="w-full my-6 rounded-xl border overflow-hidden bg-background">
@@ -54,6 +59,12 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode
                 <span>CSS</span>
               </TabsTrigger>
             )}
+            {hasJs && (
+              <TabsTrigger value="js" className="gap-2 h-10 px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+                <Zap className="h-4 w-4" />
+                <span>JS</span>
+              </TabsTrigger>
+            )}
           </TabsList>
           <Dialog>
             <DialogTrigger asChild>
@@ -66,7 +77,7 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode
               <iframe
                 srcDoc={combinedCode}
                 title="Code Preview"
-                sandbox="allow-scripts"
+                sandbox="allow-scripts allow-same-origin"
                 frameBorder="0"
                 className="w-full h-full bg-white rounded-lg"
               />
@@ -78,19 +89,24 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode
           <iframe
             srcDoc={combinedCode}
             title="Code Preview"
-            sandbox="allow-scripts"
+            sandbox="allow-scripts allow-same-origin"
             frameBorder="0"
             className="w-full h-64 md:h-80 lg:h-96 bg-white"
           />
         </TabsContent>
         {hasHtml && (
           <TabsContent value="html" className="m-0">
-            <CodeBlock language="html" code={htmlCode} className="rounded-none border-0" />
+            <CodeBlock language="html" code={htmlCode} />
           </TabsContent>
         )}
         {hasCss && (
           <TabsContent value="css" className="m-0">
-            <CodeBlock language="css" code={cssCode} className="rounded-none border-0" />
+            <CodeBlock language="css" code={cssCode} />
+          </TabsContent>
+        )}
+        {hasJs && (
+          <TabsContent value="js" className="m-0">
+            <CodeBlock language="javascript" code={jsCode} />
           </TabsContent>
         )}
       </Tabs>
