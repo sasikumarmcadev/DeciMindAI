@@ -568,7 +568,7 @@ function PageContent({ chatId }: { chatId: string }) {
                     </Avatar>
                   )}
                   <div
-                    className={`max-w-lg md:max-w-xl lg:max-w-2xl group`}
+                    className={`max-w-lg md:max-w-xl lg:max-w-2xl group relative`}
                   >
                     <div
                       className={`rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
@@ -577,20 +577,26 @@ function PageContent({ chatId }: { chatId: string }) {
                         }`}
                     >
                       {msg.role === 'assistant' ? (
-                        <AssistantMessage content={msg.content} />
+                        <>
+                          <div className="flex items-center gap-2 mb-3">
+                              <Lightbulb className="h-5 w-5 text-yellow-400" />
+                              <h3 className="font-semibold text-foreground">DeciMind AI</h3>
+                          </div>
+                          <AssistantMessage content={msg.content} />
+                        </>
                       ) : (
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       )}
                     </div>
                     {msg.role === 'assistant' && (
-                      <div className="flex items-center justify-end px-2 pt-2 gap-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(msg.content)}>
+                      <div className="flex items-center justify-end px-2 pt-2 gap-1 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-8 right-0">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-accent" onClick={() => handleCopy(msg.content)}>
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className={cn("h-7 w-7", feedback[msg.id] === 'like' && 'text-primary bg-accent')}
+                          className={cn("h-7 w-7 rounded-full hover:bg-accent", feedback[msg.id] === 'like' && 'text-primary bg-accent')}
                           onClick={() => handleFeedback(msg.id, 'like')}
                         >
                           <ThumbsUp className="h-4 w-4" />
@@ -598,7 +604,7 @@ function PageContent({ chatId }: { chatId: string }) {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className={cn("h-7 w-7", feedback[msg.id] === 'dislike' && 'text-destructive bg-destructive/10')}
+                          className={cn("h-7 w-7 rounded-full hover:bg-accent", feedback[msg.id] === 'dislike' && 'text-destructive bg-destructive/10')}
                           onClick={() => handleFeedback(msg.id, 'dislike')}
                         >
                           <ThumbsDown className="h-4 w-4" />
@@ -653,5 +659,7 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
     </SidebarProvider>
   );
 }
+
+    
 
     
