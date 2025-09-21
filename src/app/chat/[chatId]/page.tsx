@@ -97,7 +97,7 @@ const SuggestionCard = ({ icon, text, onClick }: { icon: React.ReactNode, text: 
         <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-primary">
             {icon}
         </div>
-        <p className="text-sm text-left text-foreground">{text}</p>
+        <p className="text-xs text-left text-foreground">{text}</p>
       </div>
     </motion.div>
   );
@@ -122,10 +122,10 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
             </div>
         </div>
         <div className="z-10 flex flex-col items-center">
-            <h1 className="text-3xl md:text-4xl font-bold max-w-2xl mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold max-w-2xl mb-4">
                 <VerticalCutReveal>Hello, how can I help you today?</VerticalCutReveal>
             </h1>
-            <p className="text-foreground/70 max-w-lg mb-8">
+            <p className="text-sm text-foreground/70 max-w-lg mb-8">
                 I can help you with a variety of tasks. Here are some suggestions to get started:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-xl w-full">
@@ -665,4 +665,5 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
 }
 
     
+
 
