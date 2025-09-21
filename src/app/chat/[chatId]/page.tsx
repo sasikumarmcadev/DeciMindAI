@@ -86,29 +86,7 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
   );
 };
 
-const SuggestionCard = ({ icon, text, onClick }: { icon: React.ReactNode, text: string, onClick: () => void }) => (
-    <motion.div
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.98 }}
-      className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border/20 cursor-pointer hover:bg-accent/20 transition-colors"
-      onClick={onClick}
-    >
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-primary">
-            {icon}
-        </div>
-        <p className="text-xs text-left text-foreground">{text}</p>
-      </div>
-    </motion.div>
-  );
-
 function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestion: string) => void }) {
-  const suggestions = [
-    { icon: <Lightbulb className="w-5 h-5" />, text: "Explain quantum computing in simple terms" },
-    { icon: <Code className="w-5 h-5" />, text: "Write a python script to sort a list" },
-    { icon: <Pen className="w-5 h-5" />, text: "Draft an email to a new client" },
-    { icon: <Bot className="w-5 h-5" />, text: "Tell me a fun fact about the universe" },
-  ];
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center z-[-10]">
@@ -126,13 +104,8 @@ function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestio
                 <VerticalCutReveal>Hello, how can I help you today?</VerticalCutReveal>
             </h1>
             <p className="text-sm text-foreground/70 max-w-lg mb-8">
-                I can help you with a variety of tasks. Here are some suggestions to get started:
+                I can help you with a variety of tasks. You can start by typing a prompt below.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-xl w-full">
-                {suggestions.map((s, i) => (
-                    <SuggestionCard key={i} icon={s.icon} text={s.text} onClick={() => onSuggestionClick(s.text)} />
-                ))}
-            </div>
         </div>
     </div>
   );
@@ -665,5 +638,6 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
 }
 
     
+
 
 
