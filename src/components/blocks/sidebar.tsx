@@ -60,7 +60,7 @@ const Sidebar = React.forwardRef<
       className={cn(
         "relative h-full shrink-0 flex-col justify-between border-r bg-background transition-all duration-300",
         isOpen ? "w-60" : "w-[70px]",
-        "md:flex",
+        "flex",
         className
       )}
       {...props}

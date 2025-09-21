@@ -594,8 +594,8 @@ function PageContent({ chatId }: { chatId: string }) {
   const isEmpty = messages.length === 0 && !isPending;
 
   return (
-    <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden")}>
-      <Sidebar className="hidden md:flex">
+    <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto overflow-hidden")}>
+      <Sidebar className="hidden lg:flex">
         <SidebarContent>
           <SidebarItems />
         </SidebarContent>
@@ -603,28 +603,25 @@ function PageContent({ chatId }: { chatId: string }) {
 
       <main className="flex flex-col flex-1 h-screen bg-background">
         <header className="flex items-center justify-between p-2 md:p-4 border-b shadow-sm bg-background">
-          {isMobile ? (
-            <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <ChevronsRight className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-60">
-                <SidebarProvider initialState={true}>
-                  <Sidebar className="flex w-full">
-                    <SidebarContent>
-                      <SidebarItems />
-                    </SidebarContent>
-                  </Sidebar>
-                </SidebarProvider>
-              </SheetContent>
-            </Sheet>
-          ) : (
-            <SidebarTrigger className="h-10 w-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground" />
-          )}
           <div className="flex items-center gap-2">
-            <h1 className="text-lg md:text-xl font-bold font-headline">DeciMindAI</h1>
+            <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+                <SheetTrigger asChild className="lg:hidden">
+                  <Button variant="ghost" size="icon">
+                    <ChevronsRight className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-60">
+                  <SidebarProvider initialState={true}>
+                    <Sidebar className="flex w-full">
+                      <SidebarContent>
+                        <SidebarItems />
+                      </SidebarContent>
+                    </Sidebar>
+                  </SidebarProvider>
+                </SheetContent>
+              </Sheet>
+            <SidebarTrigger className="h-10 w-10 hidden lg:inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground" />
+             <h1 className="text-lg md:text-xl font-bold font-headline">DeciMindAI</h1>
           </div>
           <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
             <Trash2 className="h-5 w-5" />
@@ -637,7 +634,7 @@ function PageContent({ chatId }: { chatId: string }) {
               <WelcomeAnimation />
             </div>
           ) : (
-            <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 w-full">
+            <div className="max-w-4xl mx-auto p-2 sm:p-4 md:p-6 space-y-6 w-full">
               {messages.map((msg, index) => (
                 <div
                   key={msg.id}
@@ -645,7 +642,7 @@ function PageContent({ chatId }: { chatId: string }) {
                     }`}
                 >
                   {msg.role === 'assistant' && (
-                     <Avatar className="h-9 w-9">
+                     <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
                       <AvatarImage 
                         src={theme === 'light' 
                           ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
@@ -659,7 +656,7 @@ function PageContent({ chatId }: { chatId: string }) {
                      </Avatar>
                   )}
                   <div
-                    className={`max-w-lg md:max-w-xl lg:max-w-2xl group relative`}
+                    className={`max-w-[85%] sm:max-w-lg md:max-w-xl lg:max-w-2xl group relative`}
                   >
                     <div
                       className={`rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
@@ -696,7 +693,7 @@ function PageContent({ chatId }: { chatId: string }) {
                               onChange={(e) => setEditingContent(e.target.value)}
                               className="bg-transparent text-primary-foreground placeholder-primary-foreground/70"
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
+                                if (e.key === 'Enter' && !e.shiftKey) {
                                   e.preventDefault();
                                   handleSaveEdit(msg.id);
                                 }
@@ -743,7 +740,7 @@ function PageContent({ chatId }: { chatId: string }) {
                     )}
                   </div>
                   {msg.role === 'user' && (
-                    <Avatar className="h-9 w-9">
+                    <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
                       <AvatarImage src={user?.photoURL || undefined} />
                       <AvatarFallback>
                         <User className="h-5 w-5 text-muted-foreground" />
@@ -754,7 +751,7 @@ function PageContent({ chatId }: { chatId: string }) {
               ))}
               {isPending && (
                 <div className="flex items-start gap-4 justify-start">
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
                      <AvatarImage 
                         src={theme === 'light' 
                           ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
