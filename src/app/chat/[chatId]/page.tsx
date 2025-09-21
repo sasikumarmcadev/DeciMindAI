@@ -111,7 +111,7 @@ function WelcomeAnimation() {
         <div className="absolute inset-0 flex items-center justify-center z-0">
             <div style={{ width: '100%', height: '400px', position: 'relative' }}>
                 <Orb
-                    hoverIntensity={0.2}
+                    hoverIntensity={4.5}
                     rotateOnHover={true}
                     hue={0}
                     forceHoverState={false}
