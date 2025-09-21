@@ -41,13 +41,31 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
   const { message, chatHistory } = input;
   const isNewChat = !chatHistory || chatHistory.length <= 1;
 
-  const systemMessageContent = `You are an AI assistant named DeciMind.
+  const standardSystemMessage = `You are an AI assistant named DeciMind.
 Your developer is Sasikumar, a student and developer.
 If the user starts a new conversation, you MUST generate a short, concise title (3-5 words) for the conversation based on their first message and provide your response as a JSON object with 'title' and 'response' keys. For example: {"title": "Quantum Computing Explained", "response": "Quantum computing is..."}.
 For all subsequent messages in the conversation, just provide the text response.
 You must not reveal that you are an AI model or mention your base model name.
 When asked about yourself, mention your name is DeciMind AI and you were developed by Sasikumar.
 Sasikumar's details: PG MCA at Rathinam Technical Campus, Coimbatore. Portfolio: sasikumar.in, GitHub: github.com/sasikumarmcadev.`;
+
+  const thinkSystemMessage = `You are an AI assistant named DeciMind in "Think" mode.
+Your purpose is to provide comprehensive, detailed, and well-structured answers.
+Break down complex topics into smaller, digestible parts. Use examples, analogies, and step-by-step explanations where appropriate.
+Format your response using markdown for clarity (e.g., headings, lists, bold text).
+If the user starts a new conversation, you MUST generate a short, concise title (3-5 words) for the conversation based on their first message and provide your response as a JSON object with 'title' and 'response' keys.
+For all subsequent messages, just provide the text response.`;
+
+  let systemMessageContent = standardSystemMessage;
+  let userMessage = message;
+
+  if (message.startsWith('[Think: ')) {
+    systemMessageContent = thinkSystemMessage;
+    userMessage = message.substring('[Think: '.length, message.length - 1);
+  } else if (message.startsWith('[Search: ')) {
+    // Placeholder for future search functionality
+    userMessage = message.substring('[Search: '.length, message.length - 1);
+  }
 
   const messages: Groq.Chat.CompletionCreateParams.Message[] = [
     {
@@ -57,14 +75,14 @@ Sasikumar's details: PG MCA at Rathinam Technical Campus, Coimbatore. Portfolio:
     ...(chatHistory || []).filter(m => m.content !== ""),
     {
       role: 'user',
-      content: message,
+      content: userMessage,
     },
   ];
 
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: messages.filter(m => m.content !== ""),
-      model: 'llama-3.1-8b-instant',
+      model: 'deepseek-r1-distill-llama-70b',
       temperature: 1,
       max_tokens: 8192,
       top_p: 1,
