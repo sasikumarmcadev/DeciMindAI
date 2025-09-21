@@ -55,6 +55,7 @@ import Orb from '@/components/ui/Orb';
 
 
 type Message = {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
 };
@@ -440,13 +441,13 @@ function PageContent({ chatId }: { chatId: string }) {
   const handleSendMessage = (message: string, files?: File[]) => {
     if (!message.trim() && (!files || files.length === 0)) return;
   
-    const userMessage: Message = { role: 'user', content: message };
+    const userMessage: Message = { role: 'user', content: message, id: `local_${Date.now()}` };
     
     const isNewChat = messages.length === 0;
   
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
-      push(messagesRef, userMessage);
+      push(messagesRef, { role: 'user', content: message });
     }
   
     startTransition(async () => {
@@ -460,11 +461,11 @@ function PageContent({ chatId }: { chatId: string }) {
         responseContent = result.error;
       }
       
-      const assistantMessage: Message = { role: 'assistant', content: responseContent };
+      const assistantMessage: Message = { role: 'assistant', content: responseContent, id: `local_${Date.now() + 1}` };
 
       if (user && !chatId.startsWith('guest_')) {
         const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
-        push(messagesRef, assistantMessage);
+        push(messagesRef, { role: 'assistant', content: responseContent });
         
         if (isNewChat && result.title) {
           const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
@@ -536,28 +537,16 @@ function PageContent({ chatId }: { chatId: string }) {
           </Button>
         </header>
 
-        <div className={cn(
-          "flex flex-col w-full",
-          isEmpty ? 'h-full items-center justify-center' : 'flex-1 overflow-y-auto'
-        )}>
+        <div className="flex-1 overflow-y-auto w-full">
           {isEmpty ? (
-             <div className="flex flex-col items-center justify-center h-full text-center w-full max-w-4xl mx-auto px-4">
-                <WelcomeAnimation />
-                 <div className="w-full mt-4 pb-4">
-                  <PromptInputBox
-                    onSend={handleSendMessage}
-                    isLoading={isPending}
-                    placeholder="Message DeciMind..."
-                    className="bg-background border-border"
-                  />
-                 </div>
-              </div>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <WelcomeAnimation />
+            </div>
           ) : (
-            <>
             <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 w-full">
-              {messages.map((msg, index) => (
+              {messages.map((msg) => (
                 <div
-                  key={index}
+                  key={msg.id}
                   className={`flex items-start gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'
                     }`}
                 >
@@ -631,17 +620,16 @@ function PageContent({ chatId }: { chatId: string }) {
               )}
               <div ref={messagesEndRef} />
             </div>
-             <footer className="p-2 md:p-4 bg-transparent w-full max-w-4xl mx-auto">
-                <PromptInputBox
-                  onSend={handleSendMessage}
-                  isLoading={isPending}
-                  placeholder="Message DeciMind..."
-                  className="bg-background border-border"
-                />
-              </footer>
-            </>
           )}
         </div>
+        <footer className="p-2 md:p-4 bg-transparent w-full max-w-4xl mx-auto">
+          <PromptInputBox
+            onSend={handleSendMessage}
+            isLoading={isPending}
+            placeholder="Message DeciMind..."
+            className="bg-background border-border"
+          />
+        </footer>
       </main>
     </div>
   )
@@ -655,7 +643,3 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
     </SidebarProvider>
   );
 }
-
-    
-
-    
