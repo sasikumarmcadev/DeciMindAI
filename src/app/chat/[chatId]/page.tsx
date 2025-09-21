@@ -107,7 +107,7 @@ function WelcomeAnimation() {
             </div>
         </div>
         <div className="z-10 flex flex-col items-center">
-            <h1 className="text-2xl md:text-3xl font-bold max-w-2xl mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold max-w-2xl mb-4 text-foreground">
                 <VerticalCutReveal>Hello, how can I help you today?</VerticalCutReveal>
             </h1>
             <p className="text-sm text-foreground/70 max-w-lg mb-8">
