@@ -32,6 +32,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { useTheme } from 'next-themes';
 import { PromptInputBox } from '@/components/ui/ai-prompt-box';
@@ -652,3 +653,5 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
     </SidebarProvider>
   );
 }
+
+    
