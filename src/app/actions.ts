@@ -14,7 +14,7 @@ export async function getDeciMindResponse(
       message,
       chatHistory,
     });
-    return { response: result.response, title: result.title };
+    return { response: result.response, title: result.title, isThinkResponse: result.isThinkResponse };
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';

@@ -29,6 +29,7 @@ export type ChatInput = z.infer<typeof ChatInputSchema>;
 const ChatOutputSchema = z.object({
   response: z.string().describe('The LLM response.'),
   title: z.string().optional().describe('A short title for the conversation.'),
+  isThinkResponse: z.boolean().optional().describe('Whether this was a response in think mode.'),
 });
 
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
@@ -58,10 +59,12 @@ For all subsequent messages, just provide the text response.`;
 
   let systemMessageContent = standardSystemMessage;
   let userMessage = message;
+  let isThinkMode = false;
 
   if (message.startsWith('[Think: ') && message.endsWith(']')) {
     systemMessageContent = thinkSystemMessage;
     userMessage = message.substring('[Think: '.length, message.length - 1);
+    isThinkMode = true;
   } else if (message.startsWith('[Search: ') && message.endsWith(']')) {
     // Placeholder for future search functionality
     userMessage = message.substring('[Search: '.length, message.length - 1);
@@ -92,7 +95,7 @@ For all subsequent messages, just provide the text response.`;
 
     const rawResponse = chatCompletion.choices[0]?.message?.content;
     if (!rawResponse) {
-      return { response: 'Sorry, I could not generate a response.' };
+      return { response: 'Sorry, I could not generate a response.', isThinkResponse: isThinkMode };
     }
     
     if (isNewChat) {
@@ -100,15 +103,16 @@ For all subsequent messages, just provide the text response.`;
         const parsedResponse = JSON.parse(rawResponse);
         return {
           response: parsedResponse.response || 'Sorry, I could not generate a response.',
-          title: parsedResponse.title || 'New Chat'
+          title: parsedResponse.title || 'New Chat',
+          isThinkResponse: isThinkMode
         };
       } catch (e) {
         // Fallback if JSON parsing fails
-        return { response: rawResponse, title: 'New Chat' };
+        return { response: rawResponse, title: 'New Chat', isThinkResponse: isThinkMode };
       }
     }
 
-    return { response: rawResponse };
+    return { response: rawResponse, isThinkResponse: isThinkMode };
 
   } catch (error: any) {
     console.error('Error from Groq API:', error);

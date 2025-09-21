@@ -51,12 +51,14 @@ import { database } from '@/lib/firebase';
 import { ref, onValue, off, push, serverTimestamp, remove, set, update } from 'firebase/database';
 import Orb from '@/components/ui/Orb';
 import { Input } from '@/components/ui/input';
+import { ThinkResponse } from '@/components/ui/think-response';
 
 
 type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  isThinkResponse?: boolean;
 };
 
 type Chat = {
@@ -476,11 +478,16 @@ function PageContent({ chatId }: { chatId: string }) {
         responseContent = result.error;
       }
       
-      const assistantMessage: Message = { role: 'assistant', content: responseContent, id: `local_${Date.now() + 1}` };
+      const assistantMessage: Message = { 
+        role: 'assistant', 
+        content: responseContent, 
+        id: `local_${Date.now() + 1}`,
+        isThinkResponse: result.isThinkResponse
+      };
 
       if (user && !chatId.startsWith('guest_')) {
         const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
-        push(messagesRef, { role: 'assistant', content: responseContent });
+        push(messagesRef, { role: 'assistant', content: responseContent, isThinkResponse: result.isThinkResponse });
         
         if (isNewChat && result.title) {
           const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
@@ -568,11 +575,16 @@ function PageContent({ chatId }: { chatId: string }) {
         responseContent = result.error;
       }
       
-      const assistantMessage = { role: 'assistant', content: responseContent, id: `local_${Date.now() + 1}` };
+      const assistantMessage: Message = { 
+        role: 'assistant', 
+        content: responseContent, 
+        id: `local_${Date.now() + 1}`,
+        isThinkResponse: result.isThinkResponse 
+      };
 
       if (user && !chatId.startsWith('guest_')) {
           const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
-          push(messagesRef, { role: 'assistant', content: responseContent });
+          push(messagesRef, { role: 'assistant', content: responseContent, isThinkResponse: result.isThinkResponse });
       } else {
           setMessages(prev => [...prev, assistantMessage]);
       }
@@ -656,21 +668,27 @@ function PageContent({ chatId }: { chatId: string }) {
                         }`}
                     >
                       {msg.role === 'assistant' ? (
-                        <>
-                          <div className="flex items-center gap-2 mb-3">
-                              <Image 
-                                src={theme === 'light' 
-                                  ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
-                                  : "https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
-                                }
-                                alt="DeciMindAI Logo"
-                                width={20}
-                                height={20}
-                              />
-                              <h3 className="font-semibold text-foreground">DeciMind AI</h3>
-                          </div>
-                          <AssistantMessage content={msg.content} />
-                        </>
+                        msg.isThinkResponse ? (
+                          <ThinkResponse>
+                             <AssistantMessage content={msg.content} />
+                          </ThinkResponse>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Image 
+                                  src={theme === 'light' 
+                                    ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
+                                    : "https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
+                                  }
+                                  alt="DeciMindAI Logo"
+                                  width={20}
+                                  height={20}
+                                />
+                                <h3 className="font-semibold text-foreground">DeciMind AI</h3>
+                            </div>
+                            <AssistantMessage content={msg.content} />
+                          </>
+                        )
                       ) : editingMessageId === msg.id ? (
                         <div className="space-y-2">
                            <Input 
@@ -725,7 +743,7 @@ function PageContent({ chatId }: { chatId: string }) {
                     )}
                   </div>
                   {msg.role === 'user' && (
-                    <Avatar className="h-9 w-9 border">
+                    <Avatar className="h-9 w-9">
                       <AvatarImage src={user?.photoURL || undefined} />
                       <AvatarFallback>
                         <User className="h-5 w-5 text-muted-foreground" />
