@@ -178,7 +178,7 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
       uniforms: {
         iTime: { value: 0 },
         iResolution: {
-          value: new Vec3(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
+          value: new Vec3(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.width)
         },
         hue: { value: hue },
         hover: { value: 0 },
