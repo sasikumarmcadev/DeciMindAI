@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useRef, useEffect, useTransition, use } from 'react';
@@ -445,7 +443,7 @@ function PageContent({ chatId }: { chatId: string }) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isPending]);
 
   useEffect(() => {
     if (!isMobile) {
@@ -463,6 +461,8 @@ function PageContent({ chatId }: { chatId: string }) {
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
       push(messagesRef, { role: 'user', content: message });
+    } else {
+        setMessages(prev => [...prev, userMessage]);
     }
   
     startTransition(async () => {
@@ -487,7 +487,7 @@ function PageContent({ chatId }: { chatId: string }) {
           update(chatRef, { title: result.title });
         }
       } else {
-        setMessages(prev => [...prev, userMessage, assistantMessage]);
+        setMessages(prev => [...prev, assistantMessage]);
       }
     });
   };
@@ -536,12 +536,18 @@ function PageContent({ chatId }: { chatId: string }) {
       handleCancelEdit();
       return;
     }
-
-    // Remove all subsequent messages
-    const subsequentMessages = messages.slice(editedMessageIndex + 1);
-    for (const msg of subsequentMessages) {
-      const msgRef = ref(database, `chats/${user.uid}/${chatId}/messages/${msg.id}`);
-      await remove(msgRef);
+    
+    // In guest mode, just update local state
+    if (chatId.startsWith('guest_')) {
+        const updatedMessages = messages.map(msg => msg.id === messageId ? {...msg, content: editingContent} : msg);
+        setMessages(updatedMessages.slice(0, editedMessageIndex + 1));
+    } else {
+        // Remove all subsequent messages in Firebase
+        const subsequentMessages = messages.slice(editedMessageIndex + 1);
+        for (const msg of subsequentMessages) {
+          const msgRef = ref(database, `chats/${user.uid}/${chatId}/messages/${msg.id}`);
+          await remove(msgRef);
+        }
     }
     
     setEditingMessageId(null);
@@ -562,8 +568,14 @@ function PageContent({ chatId }: { chatId: string }) {
         responseContent = result.error;
       }
       
-      const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
-      push(messagesRef, { role: 'assistant', content: responseContent });
+      const assistantMessage = { role: 'assistant', content: responseContent, id: `local_${Date.now() + 1}` };
+
+      if (user && !chatId.startsWith('guest_')) {
+          const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
+          push(messagesRef, { role: 'assistant', content: responseContent });
+      } else {
+          setMessages(prev => [...prev, assistantMessage]);
+      }
     });
   };
   
@@ -725,11 +737,18 @@ function PageContent({ chatId }: { chatId: string }) {
               {isPending && (
                 <div className="flex items-start gap-4 justify-start">
                   <Avatar className="h-9 w-9 border">
+                     <AvatarImage 
+                        src={theme === 'light' 
+                          ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
+                          : "https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
+                        }
+                        alt="DeciMindAI Logo"
+                      />
                     <AvatarFallback>
                       <Bot className="h-5 w-5 text-muted-foreground" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border flex items-center justify-center min-h-[60px]">
+                  <div className="max-w-lg md:max-w-xl lg:max-w-2xl w-full rounded-xl p-4 shadow-sm bg-card border flex items-center min-h-[60px]">
                       <div className="pulsing-loader" />
                   </div>
                 </div>
@@ -759,4 +778,3 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
     </SidebarProvider>
   );
 }
-

@@ -111,6 +111,42 @@ body {
 }
 
 @layer utilities {
+  .pulsing-loader {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .pulsing-loader::before,
+  .pulsing-loader::after {
+    content: '';
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: hsl(var(--foreground) / 0.5);
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+
+  .pulsing-loader::before {
+    animation-delay: -0.5s;
+  }
+  
+  .pulsing-loader::after {
+    animation-delay: 0.5s;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(0.6);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
   .bouncing-loader {
     display: flex;
     justify-content: center;
