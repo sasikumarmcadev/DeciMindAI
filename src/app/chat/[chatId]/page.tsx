@@ -366,6 +366,7 @@ function PageContent({ chatId }: { chatId: string }) {
   const router = useRouter();
   const { toast } = useToast();
   const [feedback, setFeedback] = useState<{ [key: string]: 'like' | 'dislike' | null }>({});
+  const { theme } = useTheme();
 
   const handleFeedback = (messageId: string, newFeedback: 'like' | 'dislike') => {
     if (user && !chatId.startsWith('guest_')) {
@@ -561,11 +562,18 @@ function PageContent({ chatId }: { chatId: string }) {
                     }`}
                 >
                   {msg.role === 'assistant' && (
-                    <Avatar className="h-9 w-9 border">
-                      <AvatarFallback>
-                        <Bot className="h-5 w-5 text-muted-foreground" />
-                      </AvatarFallback>
-                    </Avatar>
+                     <Avatar className="h-9 w-9 border">
+                      <AvatarImage 
+                        src={theme === 'light' 
+                          ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
+                          : "https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
+                        }
+                        alt="DeciMindAI Logo"
+                      />
+                       <AvatarFallback>
+                         <Bot className="h-5 w-5 text-muted-foreground" />
+                       </AvatarFallback>
+                     </Avatar>
                   )}
                   <div
                     className={`max-w-lg md:max-w-xl lg:max-w-2xl group relative`}
@@ -659,7 +667,3 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
     </SidebarProvider>
   );
 }
-
-    
-
-    
