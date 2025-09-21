@@ -109,7 +109,7 @@ function WelcomeAnimation() {
         <div className="absolute inset-0 flex items-center justify-center z-0">
             <div style={{ width: '100%', height: '400px', position: 'relative' }}>
                 <Orb
-                    hoverIntensity={4.5}
+                    hoverIntensity={0}
                     rotateOnHover={true}
                     hue={0}
                     forceHoverState={false}
@@ -633,7 +633,7 @@ function PageContent({ chatId }: { chatId: string }) {
                     }`}
                 >
                   {msg.role === 'assistant' && (
-                     <Avatar className="h-9 w-9 border">
+                     <Avatar className="h-9 w-9">
                       <AvatarImage 
                         src={theme === 'light' 
                           ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
@@ -652,7 +652,7 @@ function PageContent({ chatId }: { chatId: string }) {
                     <div
                       className={`rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
                           ? 'bg-primary text-primary-foreground'
-                          : 'bg-card border'
+                          : 'bg-card'
                         }`}
                     >
                       {msg.role === 'assistant' ? (
@@ -736,7 +736,7 @@ function PageContent({ chatId }: { chatId: string }) {
               ))}
               {isPending && (
                 <div className="flex items-start gap-4 justify-start">
-                  <Avatar className="h-9 w-9 border">
+                  <Avatar className="h-9 w-9">
                      <AvatarImage 
                         src={theme === 'light' 
                           ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
@@ -748,7 +748,7 @@ function PageContent({ chatId }: { chatId: string }) {
                       <Bot className="h-5 w-5 text-muted-foreground" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="max-w-lg md:max-w-xl lg:max-w-2xl w-full rounded-xl p-4 shadow-sm bg-card border flex items-center min-h-[60px]">
+                  <div className="max-w-lg md:max-w-xl lg:max-w-2xl w-full rounded-xl p-4 shadow-sm bg-card flex items-center min-h-[60px]">
                       <div className="pulsing-loader" />
                   </div>
                 </div>
