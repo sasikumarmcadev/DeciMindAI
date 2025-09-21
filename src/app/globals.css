@@ -96,11 +96,11 @@ body {
     background: transparent;
   }
   textarea::-webkit-scrollbar-thumb {
-    background-color: #444444;
+    background-color: #000000;
     border-radius: 3px;
   }
   textarea::-webkit-scrollbar-thumb:hover {
-    background-color: #555555;
+    background-color: #333333;
   }
 }
 
