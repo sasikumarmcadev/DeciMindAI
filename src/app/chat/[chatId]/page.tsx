@@ -646,7 +646,15 @@ function PageContent({ chatId }: { chatId: string }) {
                       {msg.role === 'assistant' ? (
                         <>
                           <div className="flex items-center gap-2 mb-3">
-                              <Lightbulb className="h-5 w-5 text-yellow-400" />
+                              <Image 
+                                src={theme === 'light' 
+                                  ? "https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png" 
+                                  : "https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
+                                }
+                                alt="DeciMindAI Logo"
+                                width={20}
+                                height={20}
+                              />
                               <h3 className="font-semibold text-foreground">DeciMind AI</h3>
                           </div>
                           <AssistantMessage content={msg.content} />
@@ -743,7 +751,8 @@ function PageContent({ chatId }: { chatId: string }) {
   )
 }
 
-export default function DeciMindPage({ params: { chatId } }: { params: { chatId: string } }) {
+export default function DeciMindPage({ params }: { params: { chatId: string } }) {
+  const { chatId } = use(params);
   return (
     <SidebarProvider>
       <PageContent chatId={chatId} />
