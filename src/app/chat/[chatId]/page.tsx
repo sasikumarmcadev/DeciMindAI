@@ -494,7 +494,7 @@ function PageContent({ chatId }: { chatId: string }) {
           update(chatRef, { title: result.title });
         }
       } else {
-        setMessages(prev => [...prev, userMessage, assistantMessage]);
+        setMessages(prev => [...prev, assistantMessage]);
       }
     });
   };
@@ -665,3 +665,4 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
 }
 
     
+
