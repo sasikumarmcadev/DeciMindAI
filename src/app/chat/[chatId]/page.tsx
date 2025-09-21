@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
+import Image from 'next/image';
 import {
   Sidebar,
   SidebarProvider,
@@ -74,7 +75,13 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
     <div
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <Image 
+        src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758433147/Gemini_Generated_Image_7g84zb7g84zb7g84_zcntgn.png"
+        alt="DeciMind Logo"
+        width={32}
+        height={32}
+        className="rounded-md"
+      />
       {isOpen && <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -441,8 +448,6 @@ function PageContent({ chatId }: { chatId: string }) {
     if (user && !chatId.startsWith('guest_')) {
       const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
       push(messagesRef, userMessage);
-    } else {
-      setMessages(prev => [...prev, userMessage]);
     }
   
     startTransition(async () => {
@@ -467,7 +472,7 @@ function PageContent({ chatId }: { chatId: string }) {
           update(chatRef, { title: result.title });
         }
       } else {
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages(prev => [...prev, userMessage, assistantMessage]);
       }
     });
   };
@@ -653,6 +658,7 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
 }
 
     
+
 
 
 
