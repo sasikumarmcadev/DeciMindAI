@@ -657,7 +657,12 @@ function PageContent({ chatId }: { chatId: string }) {
                               value={editingContent}
                               onChange={(e) => setEditingContent(e.target.value)}
                               className="bg-transparent text-primary-foreground placeholder-primary-foreground/70"
-                              onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(msg.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSaveEdit(msg.id);
+                                }
+                              }}
                             />
                            <div className="flex justify-end gap-2">
                               <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleCancelEdit}><X className="h-4 w-4" /></Button>
@@ -738,8 +743,7 @@ function PageContent({ chatId }: { chatId: string }) {
   )
 }
 
-export default function DeciMindPage({ params }: { params: { chatId: string } }) {
-  const { chatId } = use(params);
+export default function DeciMindPage({ params: { chatId } }: { params: { chatId: string } }) {
   return (
     <SidebarProvider>
       <PageContent chatId={chatId} />
