@@ -59,10 +59,10 @@ For all subsequent messages, just provide the text response.`;
   let systemMessageContent = standardSystemMessage;
   let userMessage = message;
 
-  if (message.startsWith('[Think: ')) {
+  if (message.startsWith('[Think: ') && message.endsWith(']')) {
     systemMessageContent = thinkSystemMessage;
     userMessage = message.substring('[Think: '.length, message.length - 1);
-  } else if (message.startsWith('[Search: ')) {
+  } else if (message.startsWith('[Search: ') && message.endsWith(']')) {
     // Placeholder for future search functionality
     userMessage = message.substring('[Search: '.length, message.length - 1);
   }
@@ -82,7 +82,7 @@ For all subsequent messages, just provide the text response.`;
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: messages.filter(m => m.content !== ""),
-      model: 'deepseek-r1-distill-llama-70b',
+      model: 'llama3-8b-8192',
       temperature: 1,
       max_tokens: 8192,
       top_p: 1,
@@ -104,7 +104,7 @@ For all subsequent messages, just provide the text response.`;
         };
       } catch (e) {
         // Fallback if JSON parsing fails
-        return { response: rawResponse };
+        return { response: rawResponse, title: 'New Chat' };
       }
     }
 
