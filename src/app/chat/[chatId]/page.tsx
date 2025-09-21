@@ -76,11 +76,10 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
       <Image 
-        src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758433147/Gemini_Generated_Image_7g84zb7g84zb7g84_zcntgn.png"
+        src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758433651/Gemini_Generated_Image_7g84zb7g84zb7g84-removebg-preview_ge8s14.png"
         alt="DeciMind Logo"
         width={32}
         height={32}
-        className="rounded-md"
       />
       {isOpen && <motion.span
         initial={{ opacity: 0 }}
@@ -659,9 +658,4 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
 
     
 
-
-
-
-
-
-
+    
