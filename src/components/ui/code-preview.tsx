@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { CodeBlock } from '@/components/code-block';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Eye, Code, FolderCode, Expand, Zap } from 'lucide-react';
 
@@ -74,6 +74,9 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[90vw] h-[90vh] p-0 border-0">
+              <DialogHeader>
+                <DialogTitle className="sr-only">Full Code Preview</DialogTitle>
+              </DialogHeader>
               <iframe
                 srcDoc={combinedCode}
                 title="Code Preview"
@@ -113,3 +116,5 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ htmlCode = '', cssCode
     </div>
   );
 };
+
+    
