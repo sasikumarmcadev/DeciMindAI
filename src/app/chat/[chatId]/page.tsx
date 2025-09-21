@@ -72,16 +72,27 @@ function AssistantMessage({ content }: { content: string }) {
 }
 
 export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
+  const { theme } = useTheme();
+
   return (
     <div
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      <Image 
-        src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
-        alt="DeciMind Logo"
-        width={32}
-        height={32}
-      />
+      {theme === 'light' ? (
+        <Image 
+          src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png"
+          alt="DeciMind Logo"
+          width={32}
+          height={32}
+        />
+      ) : (
+        <Image 
+          src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
+          alt="DeciMind Logo"
+          width={32}
+          height={32}
+        />
+      )}
       {isOpen && <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -95,7 +106,7 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
 
 function WelcomeAnimation() {
   return (
-    <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative overflow-hidden">
+    <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 relative overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center z-0">
             <div style={{ width: '100%', height: '400px', position: 'relative' }}>
                 <Orb
