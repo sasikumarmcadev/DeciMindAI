@@ -644,10 +644,10 @@ function PageContent({ chatId }: { chatId: string }) {
   )
 }
 
-export default function DeciMindPage({ params: { chatId } }: { params: { chatId: string } }) {
+export default function DeciMindPage({ params }: { params: { chatId: string } }) {
   return (
     <SidebarProvider>
-      <PageContent chatId={chatId} />
+      <PageContent chatId={params.chatId} />
     </SidebarProvider>
   );
 }
