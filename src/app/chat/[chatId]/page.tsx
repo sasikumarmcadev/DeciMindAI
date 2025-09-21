@@ -99,7 +99,7 @@ function WelcomeAnimation() {
         <div className="absolute inset-0 flex items-center justify-center z-0">
             <div style={{ width: '100%', height: '400px', position: 'relative' }}>
                 <Orb
-                    hoverIntensity={0.5}
+                    hoverIntensity={4.5}
                     rotateOnHover={true}
                     hue={0}
                     forceHoverState={false}
@@ -111,7 +111,7 @@ function WelcomeAnimation() {
                 <VerticalCutReveal>Hello, how can I help you today?</VerticalCutReveal>
             </h1>
             <p className="text-sm text-foreground/70 max-w-lg mb-8">
-                I can help you with a variety of tasks. You can start by typing a prompt below.
+              <VerticalCutReveal>I can help you with a variety of tasks. You can start by typing a prompt below.</VerticalCutReveal>
             </p>
         </div>
     </div>
