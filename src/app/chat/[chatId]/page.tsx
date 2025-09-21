@@ -539,7 +539,7 @@ function PageContent({ chatId }: { chatId: string }) {
           {isEmpty ? (
              <div className="flex flex-col items-center justify-center h-full text-center w-full max-w-4xl mx-auto px-4">
                 <WelcomeAnimation />
-                 <div className="w-full mt-4">
+                 <div className="w-full mt-4 pb-4">
                   <PromptInputBox
                     onSend={handleSendMessage}
                     isLoading={isPending}
@@ -653,6 +653,7 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
 }
 
     
+
 
 
 
