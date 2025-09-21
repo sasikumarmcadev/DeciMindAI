@@ -81,14 +81,14 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
       {theme === 'light' ? (
         <Image 
           src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png"
-          alt="DeciMind Logo"
+          alt="DeciMindAI Logo"
           width={32}
           height={32}
         />
       ) : (
         <Image 
           src="https://res.cloudinary.com/dhw6yweku/image/upload/v1758441143/image_rtmjio.png"
-          alt="DeciMind Logo"
+          alt="DeciMindAI Logo"
           width={32}
           height={32}
         />
@@ -98,7 +98,7 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
         animate={{ opacity: 1 }}
         className="font-medium text-black dark:text-white whitespace-pre"
       >
-        DeciMind
+        DeciMindAI
       </motion.span>}
     </div>
   );
@@ -541,7 +541,7 @@ function PageContent({ chatId }: { chatId: string }) {
             <SidebarTrigger className="h-10 w-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground" />
           )}
           <div className="flex items-center gap-2">
-            <h1 className="text-lg md:text-xl font-bold font-headline">DeciMind</h1>
+            <h1 className="text-lg md:text-xl font-bold font-headline">DeciMindAI</h1>
           </div>
           <Button variant="ghost" size="icon" onClick={handleClear} aria-label="Clear Conversation">
             <Trash2 className="h-5 w-5" />
@@ -654,3 +654,5 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
     </SidebarProvider>
   );
 }
+
+    
