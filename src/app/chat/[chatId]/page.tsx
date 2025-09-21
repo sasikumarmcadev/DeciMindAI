@@ -86,10 +86,10 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
   );
 };
 
-function WelcomeAnimation({ onSuggestionClick }: { onSuggestionClick: (suggestion: string) => void }) {
+function WelcomeAnimation() {
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 text-primary relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center z-[-10]">
+        <div className="absolute inset-0 flex items-center justify-center z-0">
             <div style={{ width: '100%', height: '400px', position: 'relative' }}>
                 <Orb
                     hoverIntensity={0.5}
@@ -491,6 +491,8 @@ function PageContent({ chatId }: { chatId: string }) {
       toast({ title: "Failed to copy", description: "Could not copy text.", variant: "destructive" });
     });
   };
+  
+  const isEmpty = messages.length === 0 && !isPending;
 
   return (
     <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto border-neutral-200 dark:border-neutral-700 overflow-hidden")}>
@@ -530,99 +532,112 @@ function PageContent({ chatId }: { chatId: string }) {
           </Button>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-            {messages.length === 0 && !isPending && (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <WelcomeAnimation onSuggestionClick={handleSendMessage} />
+        <div className={cn(
+          "flex flex-col w-full",
+          isEmpty ? 'h-full items-center justify-center' : 'flex-1 overflow-y-auto'
+        )}>
+          {isEmpty ? (
+             <div className="flex flex-col items-center justify-center h-full text-center w-full max-w-4xl mx-auto px-4">
+                <WelcomeAnimation />
+                 <div className="w-full mt-4">
+                  <PromptInputBox
+                    onSend={handleSendMessage}
+                    isLoading={isPending}
+                    placeholder="Message DeciMind..."
+                    className="bg-background border-border"
+                  />
+                 </div>
               </div>
-            )}
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex items-start gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-              >
-                {msg.role === 'assistant' && (
+          ) : (
+            <>
+            <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 w-full">
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex items-start gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                >
+                  {msg.role === 'assistant' && (
+                    <Avatar className="h-9 w-9 border">
+                      <AvatarFallback>
+                        <Bot className="h-5 w-5 text-muted-foreground" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div
+                    className={`max-w-lg md:max-w-xl lg:max-w-2xl group`}
+                  >
+                    <div
+                      className={`rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-card border'
+                        }`}
+                    >
+                      {msg.role === 'assistant' ? (
+                        <AssistantMessage content={msg.content} />
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      )}
+                    </div>
+                    {msg.role === 'assistant' && (
+                      <div className="flex items-center justify-end px-2 pt-2 gap-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(msg.content)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={cn("h-7 w-7", feedback[msg.id] === 'like' && 'text-primary bg-accent')}
+                          onClick={() => handleFeedback(msg.id, 'like')}
+                        >
+                          <ThumbsUp className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={cn("h-7 w-7", feedback[msg.id] === 'dislike' && 'text-destructive bg-destructive/10')}
+                          onClick={() => handleFeedback(msg.id, 'dislike')}
+                        >
+                          <ThumbsDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {msg.role === 'user' && (
+                    <Avatar className="h-9 w-9 border">
+                      <AvatarImage src={user?.photoURL || undefined} />
+                      <AvatarFallback>
+                        <User className="h-5 w-5 text-muted-foreground" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+              ))}
+              {isPending && (
+                <div className="flex items-start gap-4 justify-start">
                   <Avatar className="h-9 w-9 border">
                     <AvatarFallback>
                       <Bot className="h-5 w-5 text-muted-foreground" />
                     </AvatarFallback>
                   </Avatar>
-                )}
-                <div
-                  className={`max-w-lg md:max-w-xl lg:max-w-2xl group`}
-                >
-                  <div
-                    className={`rounded-xl p-3 md:p-4 shadow-sm ${msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card border'
-                      }`}
-                  >
-                    {msg.role === 'assistant' ? (
-                      <AssistantMessage content={msg.content} />
-                    ) : (
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    )}
+                  <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border flex items-center justify-center min-h-[60px]">
+                      <div className="pulsing-loader" />
                   </div>
-                  {msg.role === 'assistant' && (
-                    <div className="flex items-center justify-end px-2 pt-2 gap-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(msg.content)}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className={cn("h-7 w-7", feedback[msg.id] === 'like' && 'text-primary bg-accent')}
-                        onClick={() => handleFeedback(msg.id, 'like')}
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className={cn("h-7 w-7", feedback[msg.id] === 'dislike' && 'text-destructive bg-destructive/10')}
-                        onClick={() => handleFeedback(msg.id, 'dislike')}
-                      >
-                        <ThumbsDown className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
-                {msg.role === 'user' && (
-                  <Avatar className="h-9 w-9 border">
-                    <AvatarImage src={user?.photoURL || undefined} />
-                    <AvatarFallback>
-                      <User className="h-5 w-5 text-muted-foreground" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-            ))}
-            {isPending && (
-              <div className="flex items-start gap-4 justify-start">
-                <Avatar className="h-9 w-9 border">
-                  <AvatarFallback>
-                    <Bot className="h-5 w-5 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="max-w-xl w-full rounded-xl p-4 shadow-sm bg-card border flex items-center justify-center min-h-[60px]">
-                    <div className="pulsing-loader" />
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+             <footer className="p-2 md:p-4 bg-transparent w-full max-w-4xl mx-auto">
+                <PromptInputBox
+                  onSend={handleSendMessage}
+                  isLoading={isPending}
+                  placeholder="Message DeciMind..."
+                  className="bg-background border-border"
+                />
+              </footer>
+            </>
+          )}
         </div>
-
-        <footer className="p-2 md:p-4 bg-transparent w-full max-w-4xl mx-auto">
-          <PromptInputBox
-            onSend={handleSendMessage}
-            isLoading={isPending}
-            placeholder="Message DeciMind..."
-            className="bg-background border-border"
-          />
-        </footer>
       </main>
     </div>
   )
@@ -638,6 +653,7 @@ export default function DeciMindPage({ params }: { params: { chatId: string } })
 }
 
     
+
 
 
 
