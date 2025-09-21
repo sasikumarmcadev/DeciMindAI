@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
@@ -33,7 +32,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { useTheme } from 'next-themes';
 import { PromptInputBox } from '@/components/ui/ai-prompt-box';
@@ -647,10 +645,9 @@ function PageContent({ chatId }: { chatId: string }) {
 }
 
 export default function DeciMindPage({ params }: { params: { chatId: string } }) {
-  const { chatId } = params;
   return (
     <SidebarProvider>
-      <PageContent chatId={chatId} />
+      <PageContent chatId={params.chatId} />
     </SidebarProvider>
   );
 }
