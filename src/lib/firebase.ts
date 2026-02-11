@@ -1,21 +1,33 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  "projectId": "studio-6732716937-f41ae",
-  "appId": "1:354757028087:web:0dfdabddf9e417fd204bf2",
-  "storageBucket": "studio-6732716937-f41ae.firebasestorage.app",
-  "apiKey": "AIzaSyCKclXWE-qTW-3vM3SCHyo4_r2AceeVN4w",
-  "authDomain": "studio-6732716937-f41ae.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "354757028087",
-  "databaseURL": "https://studio-6732716937-f41ae-default-rtdb.firebaseio.com"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const database = getDatabase(app);
+const auth = getAuth(app);
+const database = getDatabase(app);
+
+let analytics;
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
+}
+
+export { app, auth, database, analytics };

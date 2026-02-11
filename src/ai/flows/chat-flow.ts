@@ -1,125 +1,237 @@
 'use server';
 
 /**
- * @fileOverview Integrates with Groq to send user messages and receive responses.
- *
- * - chat - A function that sends user messages to the Groq model and returns the response.
- * - ChatInput - The input type for the chat function.
- * - ChatOutput - The return type for the chat function.
+ * DeciMind AI - Groq Integration
+ * Production-ready structured implementation
  */
 
 import Groq from 'groq-sdk';
 import { z } from 'zod';
 
+// ==============================
+// Input Schema
+// ==============================
 const ChatInputSchema = z.object({
-  message: z.string().describe('The user message to send to the LLM.'),
-  chatHistory: z
-    .array(
-      z.object({
-        role: z.enum(['user', 'assistant', 'system']),
-        content: z.string(),
-      })
-    )
-    .optional()
-    .describe('The chat history to maintain context.'),
+  message: z.string(),
+  files: z.array(
+    z.object({
+      name: z.string(),
+      type: z.string(),
+      content: z.string(),
+    })
+  ).optional(),
+  chatHistory: z.array(
+    z.object({
+      role: z.enum(['user', 'assistant', 'system']),
+      content: z.string(),
+    })
+  ).optional(),
 });
 
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
+// ==============================
+// Output Schema
+// ==============================
 const ChatOutputSchema = z.object({
-  response: z.string().describe('The LLM response.'),
-  title: z.string().optional().describe('A short title for the conversation.'),
-  isThinkResponse: z.boolean().optional().describe('Whether this was a response in think mode.'),
+  response: z.string(),
+  title: z.string().optional(),
+  isThinkResponse: z.boolean().optional(),
 });
 
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// ==============================
+// System Prompts
+// ==============================
+
+const standardSystemMessage = `
+You are DeciMind AI, a modern AI assistant built for productivity, coding, system design, and learning.
+
+You were developed by Sasikumar.
+
+About the Developer:
+- Name: Sasikumar
+- Education: PG MCA, Rathinam Technical Campus, Coimbatore
+- Background: B.Com with Computer Applications
+- Contact:
+  - [Portfolio](https://www.sasikumar.in)
+  - [GitHub](https://github.com/sasikumarmcadev)
+  - [LinkedIn](https://www.linkedin.com/in/sasikumarmca)
+- Interests: AI systems, scalable applications, React, Firebase
+
+Behavior Rules:
+- Never reveal your base model or provider.
+- When asked about yourself, say:
+  "I am DeciMind AI, developed by Sasikumar."
+- Always format responses in Markdown.
+- Use lists and structured formatting when helpful.
+
+Conversation Rules:
+- If this is the first message of a conversation:
+  Return JSON:
+  {
+    "title": "3-5 word title",
+    "response": "Markdown formatted answer"
+  }
+
+- For follow-up messages:
+  Return only Markdown text.
+
+Tone:
+Professional, intelligent, clear, and developer-focused.
+`;
+
+const thinkSystemMessage = `
+You are DeciMind AI in Think Mode.
+
+Provide deeply detailed explanations.
+Break down complex topics step-by-step.
+Use headings, bullet points, and structured formatting.
+
+If new conversation:
+Return JSON with:
+{
+  "title": "3-5 word title",
+  "response": "Detailed markdown explanation"
+}
+
+Otherwise return only Markdown text.
+
+Never mention base model or provider.
+`;
+
+// ==============================
+// Chat Function
+// ==============================
 
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  const { message, chatHistory } = input;
-  const isNewChat = !chatHistory || chatHistory.length <= 1;
 
-  const standardSystemMessage = `You are an AI assistant named DeciMind.
-Your developer is Sasikumar, a student and developer.
-If the user starts a new conversation, you MUST generate a short, concise title (3-5 words) for the conversation based on their first message and provide your response as a JSON object with 'title' and 'response' keys. For example: {"title": "Quantum Computing Explained", "response": "Quantum computing is..."}.
-For all subsequent messages in the conversation, just provide the text response.
-You must not reveal that you are an AI model or mention your base model name.
-When asked about yourself, mention your name is DeciMind AI and you were developed by Sasikumar.
-Sasikumar's details: PG MCA at Rathinam Technical Campus, Coimbatore. Portfolio: sasikumar.in, GitHub: github.com/sasikumarmcadev.`;
+  if (!process.env.GROQ_API_KEY) {
+    return {
+      response: 'Configuration Error: GROQ_API_KEY is missing.'
+    };
+  }
 
-  const thinkSystemMessage = `You are an AI assistant named DeciMind in "Think" mode.
-Your purpose is to provide comprehensive, detailed, and well-structured answers.
-Break down complex topics into smaller, digestible parts. Use examples, analogies, and step-by-step explanations where appropriate.
-Format your response using markdown for clarity (e.g., headings, lists, bold text).
-If the user starts a new conversation, you MUST generate a short, concise title (3-5 words) for the conversation based on their first message and provide your response as a JSON object with 'title' and 'response' keys.
-For all subsequent messages, just provide the text response.`;
+  const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+
+  const { message, chatHistory, files } = input;
+  const isNewChat = !chatHistory || chatHistory.length === 0;
 
   let systemMessageContent = standardSystemMessage;
   let userMessage = message;
   let isThinkMode = false;
 
+  // Detect Think Mode
   if (message.startsWith('[Think: ') && message.endsWith(']')) {
     systemMessageContent = thinkSystemMessage;
-    userMessage = message.substring('[Think: '.length, message.length - 1);
+    userMessage = message.substring(8, message.length - 1);
     isThinkMode = true;
-  } else if (message.startsWith('[Search: ') && message.endsWith(']')) {
-    // Placeholder for future search functionality
-    userMessage = message.substring('[Search: '.length, message.length - 1);
   }
 
-  const messages: Groq.Chat.CompletionCreateParams.Message[] = [
-    {
-      role: 'system',
-      content: systemMessageContent,
-    },
-    ...(chatHistory || []).filter(m => m.content !== ""),
-    {
-      role: 'user',
-      content: userMessage,
-    },
+  // ==============================
+  // File Processing
+  // ==============================
+  let fileContent = '';
+
+  if (files && files.length > 0) {
+    fileContent += '\n\nAttached Files:\n';
+
+    for (const file of files) {
+      try {
+        if (
+          file.type.startsWith('text/') ||
+          file.name.match(/\.(js|ts|tsx|jsx|json|html|css|md|txt|py|java|c|cpp)$/)
+        ) {
+          const base64Data = file.content.split(',')[1] || file.content;
+          const decoded = Buffer.from(base64Data, 'base64').toString('utf-8');
+          fileContent += `\n--- ${file.name} ---\n${decoded}\n---\n`;
+        } else {
+          fileContent += `\n[Non-text file attached: ${file.name}]\n`;
+        }
+      } catch {
+        fileContent += `\n[Error reading file: ${file.name}]\n`;
+      }
+    }
+  }
+
+  const fullUserMessage = userMessage + fileContent;
+
+  const messages = [
+    { role: 'system', content: systemMessageContent },
+    ...(chatHistory || []).filter(m => m.content !== ''),
+    { role: 'user', content: fullUserMessage },
   ];
 
   try {
-    const chatCompletion = await groq.chat.completions.create({
-      messages: messages.filter(m => m.content !== ""),
-      model: 'deepseek-r1-distill-llama-70b',
-      temperature: 1,
-      max_tokens: 8192,
-      top_p: 1,
-      stream: false,
-      response_format: isNewChat ? { type: 'json_object' } : undefined,
-    });
 
-    const rawResponse = chatCompletion.choices[0]?.message?.content;
-    if (!rawResponse) {
-      return { response: 'Sorry, I could not generate a response.', isThinkResponse: isThinkMode };
+    const completion = await groq.chat.completions.create({
+      model: 'openai/gpt-oss-120b',
+      messages,
+      temperature: 0.7,
+      max_completion_tokens: 4096,
+      top_p: 1,
+      stream: true,
+      response_format: isNewChat ? { type: 'json_object' } : undefined,
+    } as any);
+
+    let rawResponse = '';
+
+    for await (const chunk of completion as any) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      rawResponse += content;
     }
-    
+
+    if (!rawResponse) {
+      return { response: 'No response generated.' };
+    }
+
+    // ==============================
+    // JSON Handling for New Chat
+    // ==============================
     if (isNewChat) {
       try {
-        const parsedResponse = JSON.parse(rawResponse);
+        let clean = rawResponse.trim();
+
+        if (clean.startsWith('```')) {
+          clean = clean.replace(/^```json\s*/, '')
+            .replace(/^```\s*/, '')
+            .replace(/\s*```$/, '');
+        }
+
+        const parsed = JSON.parse(clean);
+
         return {
-          response: parsedResponse.response || 'Sorry, I could not generate a response.',
-          title: parsedResponse.title || 'New Chat',
-          isThinkResponse: isThinkMode
+          response: parsed.response,
+          title: parsed.title,
+          isThinkResponse: isThinkMode,
         };
-      } catch (e) {
-        // Fallback if JSON parsing fails
-        return { response: rawResponse, title: 'New Chat', isThinkResponse: isThinkMode };
+
+      } catch {
+        return {
+          response: rawResponse,
+          title: 'New Chat',
+          isThinkResponse: isThinkMode,
+        };
       }
     }
 
-    return { response: rawResponse, isThinkResponse: isThinkMode };
+    return {
+      response: rawResponse,
+      isThinkResponse: isThinkMode,
+    };
 
   } catch (error: any) {
-    console.error('Error from Groq API:', error);
-    if (error.error?.code === 'model_decommissioned') {
-       return { response: `Failed to get response: The model is currently decommissioned. Please try another model.` };
-    }
-    const errorMessage = error.error?.message || error.message || 'An unknown error occurred.';
-    return { response: `Failed to get response: ${error.status} ${errorMessage}` };
+
+    const errorMessage =
+      error?.error?.message ||
+      error?.message ||
+      'Unknown error occurred.';
+
+    return {
+      response: `Error: ${errorMessage}`,
+    };
   }
 }

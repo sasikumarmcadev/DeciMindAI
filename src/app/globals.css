@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-*{
-  scrollbar-color: #cbcbcb #0000;
+* {
+  scrollbar-color: #363636;
 }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  
+
 
 }
 
@@ -48,6 +48,7 @@ body {
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -88,25 +89,33 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   *:focus-visible {
     outline-offset: 0 !important;
     --ring-offset: 0 !important;
   }
-  textarea::-webkit-scrollbar {
-    width: 6px;
+
+  /* Global Scrollbar */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
-  textarea::-webkit-scrollbar-track {
+
+  *::-webkit-scrollbar-track {
     background: transparent;
   }
-  textarea::-webkit-scrollbar-thumb {
-    background-color: #000000;
-    border-radius: 3px;
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #181818;
+    border-radius: 4px;
   }
-  textarea::-webkit-scrollbar-thumb:hover {
-    background-color: #333333;
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: #2e2e2e;
   }
 }
 
@@ -131,27 +140,47 @@ body {
   .pulsing-loader::before {
     animation-delay: -0.5s;
   }
-  
+
   .pulsing-loader::after {
     animation-delay: 0.5s;
   }
 
   @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: scale(0.6);
       opacity: 0.5;
     }
+
     50% {
       transform: scale(1);
       opacity: 1;
     }
   }
 
+  @keyframes blink {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .animate-blink {
+    animation: blink 1s step-end infinite;
+  }
+
   .bouncing-loader {
     display: flex;
     justify-content: center;
   }
-  .bouncing-loader > div {
+
+  .bouncing-loader>div {
     width: 1rem;
     height: 1rem;
     margin: 3rem 0.2rem;
@@ -159,17 +188,21 @@ body {
     border-radius: 50%;
     animation: bouncing-loader 0.6s infinite alternate;
   }
-  .bouncing-loader > div:nth-child(2) {
+
+  .bouncing-loader>div:nth-child(2) {
     animation-delay: 0.2s;
   }
-  .bouncing-loader > div:nth-child(3) {
+
+  .bouncing-loader>div:nth-child(3) {
     animation-delay: 0.4s;
   }
+
   @keyframes bouncing-loader {
     from {
       opacity: 1;
       transform: translateY(0);
     }
+
     to {
       opacity: 0.1;
       transform: translateY(-1rem);
@@ -182,7 +215,7 @@ body {
     gap: 0.5rem;
   }
 
-  .responsive-prompt-actions > div {
+  .responsive-prompt-actions>div {
     width: auto;
     justify-content: flex-start;
   }
@@ -195,8 +228,27 @@ body {
     gap: 0.75rem;
   }
 
-  .responsive-prompt-actions > div:first-child {
+  .responsive-prompt-actions>div:first-child {
     width: 100%;
     justify-content: space-between;
   }
+}
+
+/* Custom Scrollbar for Code Panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #181818;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #2e2e2e;
 }

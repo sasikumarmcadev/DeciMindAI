@@ -58,7 +58,7 @@ const Sidebar = React.forwardRef<
     <aside
       ref={ref}
       className={cn(
-        "relative h-full shrink-0 flex-col justify-between border-r bg-background transition-all duration-300",
+        "relative h-full shrink-0 flex-col justify-between border-r bg-background dark:bg-[#181818] transition-all duration-300",
         isOpen ? "w-60" : "w-[70px]",
         "flex",
         className

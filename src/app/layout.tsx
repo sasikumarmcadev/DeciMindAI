@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/hooks/use-auth';
@@ -8,6 +8,9 @@ import { Provider as BalancerProvider } from 'react-wrap-balancer';
 export const metadata: Metadata = {
   title: 'DeciMind',
   description: 'A helpful AI assistant.',
+  icons: {
+    icon: 'https://res.cloudinary.com/dhw6yweku/image/upload/v1758440741/Gemini_Generated_Image_27zxt327zxt327zx-removebg-preview_evmvx3.png',
+  },
 };
 
 export default function RootLayout({
