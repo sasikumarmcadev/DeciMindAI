@@ -138,7 +138,11 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
     </div>
   );
 };
-import { PptPreview } from '@/components/ui/ppt-preview';
+import dynamic from 'next/dynamic';
+const PptPreview = dynamic(() => import('@/components/ui/ppt-preview').then(mod => mod.PptPreview), {
+  ssr: false,
+  loading: () => <div className="p-8 text-center animate-pulse bg-muted rounded-xl">Loading presentation preview...</div>
+});
 import { QuizViewer } from '@/components/ui/quiz-viewer';
 
 function WelcomeAnimation() {
