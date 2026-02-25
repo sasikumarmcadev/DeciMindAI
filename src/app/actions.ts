@@ -16,7 +16,12 @@ export async function getDeciMindResponse(
       chatHistory,
       files,
     });
-    return { response: result.response, title: result.title, isThinkResponse: result.isThinkResponse };
+    return {
+      response: result.response,
+      title: result.title,
+      isThinkResponse: result.isThinkResponse,
+      isStudyResponse: result.isStudyResponse
+    };
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';

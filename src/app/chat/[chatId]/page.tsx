@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition, use, useCallback } from 'react';
-import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, Check, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen, FolderCode, Save, X } from 'lucide-react';
+import { Bot, User, Trash2, Loader2, MessageSquare, Settings, Plus, LogOut, LogIn, Sun, Moon, ChevronsUpDown, ChevronsLeft, ChevronsRight, Copy, Check, ThumbsUp, ThumbsDown, Lightbulb, Code, Pen, FolderCode, Save, X, Link as LinkIcon, Share2, Mail, Twitter, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getDeciMindResponse } from '@/app/actions';
@@ -38,13 +38,14 @@ import { PromptInputBox } from '@/components/ui/ai-prompt-box';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal';
+import LightRays from '@/components/ui/light-rays';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useRouter } from 'next/navigation';
 import { database } from '@/lib/firebase';
@@ -52,6 +53,7 @@ import { ref, onValue, off, push, serverTimestamp, remove, set, update } from 'f
 import Orb from '@/components/ui/Orb';
 import { Input } from '@/components/ui/input';
 import { ThinkResponse } from '@/components/ui/think-response';
+import { SmartNotes } from '@/components/smart-notes';
 
 
 type Message = {
@@ -59,6 +61,12 @@ type Message = {
   role: 'user' | 'assistant';
   content: string;
   isThinkResponse?: boolean;
+  isStudyResponse?: boolean;
+  images?: string[];
+  isPptResponse?: boolean;
+  pptData?: any;
+  isQuizResponse?: boolean;
+  quizData?: any;
   shouldAnimate?: boolean;
 };
 
@@ -130,6 +138,8 @@ export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
     </div>
   );
 };
+import { PptPreview } from '@/components/ui/ppt-preview';
+import { QuizViewer } from '@/components/ui/quiz-viewer';
 
 function WelcomeAnimation() {
   const { theme } = useTheme();
@@ -141,6 +151,24 @@ function WelcomeAnimation() {
 
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 relative overflow-hidden">
+      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+        <LightRays
+          raysOrigin="top-center"
+          raysColor="#ffffff"
+          raysSpeed={1.8}
+          lightSpread={3}
+          rayLength={3}
+          followMouse={true}
+          mouseInfluence={0.1}
+          noiseAmount={0}
+          distortion={0}
+          className="opacity-50 dark:opacity-30"
+          pulsating={false}
+          fadeDistance={1}
+          saturation={1}
+        />
+      </div>
+
       <div className="absolute inset-0 flex items-center justify-center z-0">
 
       </div>
@@ -170,34 +198,21 @@ function WelcomeAnimation() {
   );
 }
 
-function SidebarNavigation() {
+
+function SidebarHeader() {
+  const { isOpen } = useSidebar();
+  return (
+    <div className="flex items-center h-14 px-4 border-b shrink-0">
+      <Logo isOpen={isOpen} />
+    </div>
+  )
+}
+
+// Fixed "New Chat" button component
+function SidebarNewChat() {
   const { isOpen } = useSidebar();
   const { user } = useAuth();
   const router = useRouter();
-  const [chats, setChats] = useState<Chat[]>([]);
-
-  useEffect(() => {
-    if (user) {
-      const chatsRef = ref(database, `chats/${user.uid}`);
-      const unsubscribe = onValue(chatsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const chatList = Object.entries(data).map(([id, chat]: [string, any]) => ({
-            id,
-            ...chat,
-          }));
-          chatList.sort((a, b) => b.createdAt - a.createdAt);
-          setChats(chatList);
-        } else {
-          setChats([]);
-        }
-      });
-
-      return () => unsubscribe();
-    } else {
-      setChats([]);
-    }
-  }, [user]);
 
   const handleNewChat = async () => {
     if (user) {
@@ -221,31 +236,29 @@ function SidebarNavigation() {
   };
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>
-        <Logo isOpen={isOpen} />
-      </SidebarGroupLabel>
+    <SidebarGroup className="pb-0">
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleNewChat} tooltip="New Chat">
-              <Plus />
-              {isOpen && <span>New Chat</span>}
+            <SidebarMenuButton onClick={handleNewChat} tooltip="New Chat" className="bg-primary/10 text-primary hover:bg-primary/20">
+              <Plus className="text-primary" />
+              {isOpen && <span className="font-semibold">New Chat</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  )
+}
 
-          {isOpen && chats.map((chat) => (
-            <SidebarMenuItem key={chat.id}>
-              <SidebarMenuButton
-                onClick={() => router.push(`/chat/${chat.id}`)}
-                tooltip={chat.title}
-                className="justify-between"
-              >
-                <span className="truncate">{chat.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
 
+// Fixed "Settings" button component
+function SidebarSettings() {
+  const { isOpen } = useSidebar();
+  return (
+    <SidebarGroup className="pt-0">
+      <SidebarGroupContent>
+        <SidebarMenu>
           <SidebarMenuItem>
             <Dialog>
               <DialogTrigger asChild>
@@ -265,6 +278,76 @@ function SidebarNavigation() {
               </DialogContent>
             </Dialog>
           </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  )
+}
+
+function SidebarNavigation() {
+  const { isOpen } = useSidebar();
+  const { user } = useAuth();
+  const router = useRouter();
+  const [chats, setChats] = useState<Chat[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      const chatsRef = ref(database, `chats/${user.uid}`);
+      const unsubscribe = onValue(chatsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const chatList = Object.entries(data)
+            .map(([id, chat]: [string, any]) => ({
+              id,
+              ...chat,
+            }))
+            .filter(chat => chat.title !== 'New Chat');
+          chatList.sort((a, b) => b.createdAt - a.createdAt);
+          setChats(chatList);
+        } else {
+          setChats([]);
+        }
+      });
+
+      return () => unsubscribe();
+    } else {
+      setChats([]);
+    }
+  }, [user]);
+
+  return (
+    <SidebarGroup className="pt-0">
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {isOpen && chats.map((chat) => (
+            <SidebarMenuItem key={chat.id}>
+              <SidebarMenuButton
+                onClick={() => router.push(`/chat/${chat.id}`)}
+                tooltip={chat.title}
+                className="justify-between group"
+              >
+                <span className="truncate">{chat.title}</span>
+                <div
+                  role="button"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-destructive z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm('Are you sure you want to delete this chat?')) {
+                      if (user) {
+                        const chatRef = ref(database, `chats/${user.uid}/${chat.id}`);
+                        remove(chatRef);
+                        if (window.location.pathname.includes(chat.id)) {
+                          router.push('/');
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
@@ -379,6 +462,7 @@ function PageContent({ chatId }: { chatId: string }) {
   const [activeCode, setActiveCode] = useState<string | null>(null);
   const [activeLanguage, setActiveLanguage] = useState<string>('text');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [chatCopied, setChatCopied] = useState(false);
 
   // Custom smooth resize implementation
   const [panelWidth, setPanelWidth] = useState(40);
@@ -539,34 +623,16 @@ function PageContent({ chatId }: { chatId: string }) {
   const handleSendMessage = (message: string, files?: File[]) => {
     if (!message.trim() && (!files || files.length === 0)) return;
 
-    let fullMessage = message;
-    if (files && files.length > 0) {
-      const fileNames = files.map(f => f.name).join(', ');
-      fullMessage = `${message}\n\n[Attached: ${fileNames}]`;
-    }
+    // Don't append [Attached: ...] to the visible message since we display images now
+    const fullMessage = message;
 
-    const userMessage: Message = { role: 'user', content: fullMessage, id: `local_${Date.now()}` };
+    // Extract base64 images to store with the message
+    let messageImages: string[] = [];
 
     const isNewChat = messages.length === 0;
 
-    if (user && !chatId.startsWith('guest_')) {
-      const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
-      push(messagesRef, { role: 'user', content: fullMessage });
-
-      // Set the chat title to the user's prompt if it's a new chat
-      if (isNewChat) {
-        const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
-        // Truncate to 100 characters to avoid excessively long titles
-        const title = fullMessage.length > 100 ? fullMessage.substring(0, 100) + '...' : fullMessage;
-        update(chatRef, { title });
-      }
-    } else {
-      setMessages(prev => [...prev, userMessage]);
-    }
-
     startTransition(async () => {
-      const currentHistory = messages.map(({ role, content }) => ({ role, content }));
-
+      // Process files first to get base64 data
       let processedFiles;
       if (files && files.length > 0) {
         try {
@@ -582,11 +648,197 @@ function PageContent({ chatId }: { chatId: string }) {
               reader.readAsDataURL(file);
             });
           }));
+
+          // Filter out images for display
+          if (processedFiles) {
+            messageImages = processedFiles
+              .filter(f => f.type.startsWith('image/'))
+              .map(f => f.content);
+          }
+
         } catch (error) {
           console.error("Error processing files:", error);
-          // Continue without files if processing fails, but ideally notify user
         }
       }
+
+      const isPptMode = fullMessage.startsWith("[PPT: ");
+      const isSearchMode = fullMessage.startsWith("[Search: ");
+      const isThinkMode = fullMessage.startsWith("[Think: ");
+      const isStudyMode = fullMessage.startsWith("[Study: ");
+      const isQuizMode = fullMessage.startsWith("[Quiz: ");
+
+      const trimmedMessage = (isPptMode || isSearchMode || isThinkMode || isStudyMode || isQuizMode)
+        ? fullMessage.substring(fullMessage.indexOf(' ') + 1, fullMessage.length - 1)
+        : fullMessage;
+
+      const userMessage: Message = {
+        role: 'user',
+        content: isPptMode ? trimmedMessage : fullMessage,
+        id: `local_${Date.now()}`,
+        images: messageImages
+      };
+
+      if (user && !chatId.startsWith('guest_')) {
+        const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
+        push(messagesRef, { role: 'user', content: isPptMode ? trimmedMessage : fullMessage, images: messageImages });
+
+        // Set the chat title to the user's prompt if it's a new chat
+        if (isNewChat) {
+          const chatRef = ref(database, `chats/${user.uid}/${chatId}`);
+          // Truncate to 100 characters to avoid excessively long titles
+          const title = trimmedMessage.length > 100 ? trimmedMessage.substring(0, 100) + '...' : trimmedMessage;
+          update(chatRef, { title });
+        }
+      } else {
+        setMessages(prev => [...prev, userMessage]);
+      }
+
+      if (isPptMode) {
+        try {
+          const id = `local_${Date.now() + 1}`;
+          const pendingMessage: Message = {
+            role: 'assistant',
+            content: "Generating your presentation... Please wait while I create formatting and compile the `.pptx` slides. The download will start automatically.",
+            id,
+            isPptResponse: true
+          };
+          setMessages(prev => [...prev, pendingMessage]);
+
+          const res = await fetch("/api/generate-ppt", {
+            method: "POST",
+            body: JSON.stringify({ topic: trimmedMessage }),
+            headers: { "Content-Type": "application/json" },
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Failed to generate PPT parameters");
+          }
+
+          const responseData = await res.json();
+          // Assume responseData contains presentation object matching PresentationData
+
+          if (!responseData || !responseData.slides || responseData.slides.length === 0) {
+            throw new Error("Invalid presentation format generated by AI");
+          }
+
+          const successMessage: Message = {
+            role: 'assistant',
+            content: `✨ I've generated the presentation structure for **"${trimmedMessage}"**! You can view and edit the slides interactively below before downloading.`,
+            id: `local_${Date.now() + 2}`,
+            isPptResponse: true,
+            pptData: responseData,
+            shouldAnimate: true
+          };
+
+          if (user && !chatId.startsWith('guest_')) {
+            const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
+            push(messagesRef, {
+              role: 'assistant',
+              content: successMessage.content,
+              isPptResponse: true,
+              pptData: responseData,
+            });
+          } else {
+            setMessages(prev => {
+              const newArr = prev.filter(m => m.id !== id);
+              return [...newArr, successMessage];
+            });
+          }
+
+        } catch (error: any) {
+          console.error(error);
+          toast({
+            title: "Generation Failed",
+            description: error.message || "An unknown error occurred while creating your presentation.",
+            variant: "destructive",
+          });
+          setMessages(prev => {
+            const newArr = prev.filter(m => m.isPptResponse && m.content.includes("Generating"));
+            return [...prev.filter(m => m.id !== newArr[0]?.id), {
+              role: 'assistant',
+              content: `❌ **Failed to generate PPT:** ${error.message || "An unknown error occurred."}`,
+              id: `local_${Date.now() + 2}`,
+              isPptResponse: true
+            }];
+          });
+        }
+        return; // Skip normal generation
+      }
+
+      if (isQuizMode) {
+        try {
+          const id = `local_${Date.now() + 1}`;
+          const pendingMessage: Message = {
+            role: 'assistant',
+            content: "Generating your quiz... Please wait while I create high-quality, concept-based questions.",
+            id,
+            isQuizResponse: true
+          };
+          setMessages(prev => [...prev, pendingMessage]);
+
+          const res = await fetch("/api/generate-quiz", {
+            method: "POST",
+            body: JSON.stringify({ topic: trimmedMessage, numberRecord: 5, difficulty: "medium" }),
+            headers: { "Content-Type": "application/json" },
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Failed to generate quiz");
+          }
+
+          const responseData = await res.json();
+
+          if (!responseData || !responseData.questions || responseData.questions.length === 0) {
+            throw new Error("Invalid quiz format generated by AI");
+          }
+
+          const successMessage: Message = {
+            role: 'assistant',
+            content: `🧠 I've generated a quiz for **"${trimmedMessage}"**! Test your knowledge below.`,
+            id: `local_${Date.now() + 2}`,
+            isQuizResponse: true,
+            quizData: responseData,
+            shouldAnimate: true
+          };
+
+          if (user && !chatId.startsWith('guest_')) {
+            const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
+            push(messagesRef, {
+              role: 'assistant',
+              content: successMessage.content,
+              isQuizResponse: true,
+              quizData: responseData,
+            });
+          } else {
+            setMessages(prev => {
+              const newArr = prev.filter(m => m.id !== id);
+              return [...newArr, successMessage];
+            });
+          }
+
+        } catch (error: any) {
+          console.error(error);
+          toast({
+            title: "Quiz Generation Failed",
+            description: error.message || "An unknown error occurred while creating your quiz.",
+            variant: "destructive",
+          });
+          setMessages(prev => {
+            const newArr = prev.filter(m => m.isQuizResponse && m.content.includes("Generating"));
+            return [...prev.filter(m => m.id !== newArr[0]?.id), {
+              role: 'assistant',
+              content: `❌ **Failed to generate quiz:** ${error.message || "An unknown error occurred."}`,
+              id: `local_${Date.now() + 2}`,
+              isQuizResponse: true
+            }];
+          });
+        }
+        return; // Skip normal generation
+      }
+
+      const currentHistory = messages.map(({ role, content }) => ({ role, content }));
 
       const result = await getDeciMindResponse(currentHistory, fullMessage, processedFiles);
 
@@ -601,13 +853,19 @@ function PageContent({ chatId }: { chatId: string }) {
         role: 'assistant',
         content: responseContent,
         id: `local_${Date.now() + 1}`,
-        isThinkResponse: result.isThinkResponse,
+        isThinkResponse: result.isThinkResponse ?? false,
+        isStudyResponse: result.isStudyResponse ?? false,
         shouldAnimate: true
       };
 
       if (user && !chatId.startsWith('guest_')) {
         const messagesRef = ref(database, `chats/${user.uid}/${chatId}/messages`);
-        push(messagesRef, { role: 'assistant', content: responseContent, isThinkResponse: result.isThinkResponse });
+        push(messagesRef, {
+          role: 'assistant',
+          content: responseContent,
+          isThinkResponse: result.isThinkResponse ?? false,
+          isStudyResponse: result.isStudyResponse ?? false
+        });
 
         // Previous AI title generation logic removed/commented out above
       } else {
@@ -711,19 +969,23 @@ function PageContent({ chatId }: { chatId: string }) {
   const isEmpty = messages.length === 0 && !isPending;
 
   return (
-    <div className={cn("rounded-md flex h-screen w-full flex-1 max-w-full mx-auto overflow-hidden")}>
-      <Sidebar className="hidden lg:flex rounded-tr-[1.3rem] rounded-br-[1.3rem] border-r mr-2">
+    <div className={cn("rounded-md flex h-[100dvh] w-full flex-1 max-w-full mx-auto overflow-hidden")}>
+      <Sidebar className="hidden lg:flex rounded-tr-[1.3rem] rounded-br-[1.3rem] border-r mr-2 flex-col">
+        <SidebarHeader />
+        <SidebarNewChat />
+
         <SidebarContent>
           <SidebarNavigation />
         </SidebarContent>
+        <SidebarSettings />
         <SidebarUserFooter />
       </Sidebar>
 
       {/* Main content area with custom resizable split */}
-      <div className="flex flex-1 h-screen">
+      <div className="flex flex-1 h-full min-h-0">
         {/* Main Chat Area */}
         <main
-          className="flex flex-col flex-1 h-screen bg-background min-w-0"
+          className="flex flex-col flex-1 h-full bg-background min-w-0 overflow-hidden relative"
           style={{
             width: activeCode && !isMobile ? `${100 - panelWidth}%` : '100%',
             transition: isResizingRef.current ? 'none' : 'width 0.2s ease-out'
@@ -738,11 +1000,16 @@ function PageContent({ chatId }: { chatId: string }) {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-0 w-60">
+                  <SheetTitle className="sr-only">Mobile Navigation</SheetTitle>
                   <SidebarProvider initialState={true}>
-                    <Sidebar className="flex w-full">
+                    <Sidebar className="flex w-full flex-col">
+                      <SidebarHeader />
+                      <SidebarNewChat />
+
                       <SidebarContent>
                         <SidebarNavigation />
                       </SidebarContent>
+                      <SidebarSettings />
                       <SidebarUserFooter />
                     </Sidebar>
                   </SidebarProvider>
@@ -752,12 +1019,136 @@ function PageContent({ chatId }: { chatId: string }) {
               <h1 className="text-lg md:text-xl font-bold font-headline">DeciMindAI</h1>
             </div>
 
+            <div className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 text-xs font-medium hidden sm:flex"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Share
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md bg-card border-border">
+                  <DialogHeader>
+                    <DialogTitle>Share this chat</DialogTitle>
+                    <DialogDescription>
+                      Choose how you want to share this conversation.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid grid-cols-4 gap-4 py-4">
+                    {/* WhatsApp */}
+                    <button
+                      className="flex flex-col items-center gap-2 group"
+                      onClick={() => {
+                        const url = window.location.href;
+                        const text = `Check out this chat on DeciMindAI: ${url}`;
+                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center group-hover:bg-[#25D366]/20 transition-colors">
+                        {/* WhatsApp "W" Icon fallback contextually appropriate */}
+                        <div className="w-6 h-6 text-[#25D366] font-bold text-center leading-none text-xl">W</div>
+                      </div>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground">WhatsApp</span>
+                    </button>
+
+                    {/* Twitter/X */}
+                    <button
+                      className="flex flex-col items-center gap-2 group"
+                      onClick={() => {
+                        const url = window.location.href;
+                        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent("Check out this chat on DeciMindAI")}`, '_blank');
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-[#1DA1F2]/10 flex items-center justify-center group-hover:bg-[#1DA1F2]/20 transition-colors">
+                        <Twitter className="w-6 h-6 text-[#1DA1F2]" />
+                      </div>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground">Twitter</span>
+                    </button>
+
+                    {/* Email */}
+                    <button
+                      className="flex flex-col items-center gap-2 group"
+                      onClick={() => {
+                        const url = window.location.href;
+                        const subject = "Check out this chat on DeciMindAI";
+                        const body = `I thought you might find this interesting:\n\n${url}`;
+                        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-zinc-700 transition-colors">
+                        <Mail className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                      </div>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground">Email</span>
+                    </button>
+
+                    {/* Instagram (Proxy via Copy) */}
+                    <button
+                      className="flex flex-col items-center gap-2 group"
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast({ title: "Link Copied", description: "Paste this link in Instagram." });
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
+                        <Instagram className="w-6 h-6 text-pink-500" />
+                      </div>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground">Instagram</span>
+                    </button>
+
+                    {/* Copy Link */}
+                    <button
+                      className="flex flex-col items-center gap-2 group"
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast({ title: "Link Copied", description: "Chat link copied to clipboard." });
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
+                        <LinkIcon className="w-6 h-6 text-orange-500" />
+                      </div>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground">Copy Link</span>
+                    </button>
+
+                    {/* Native System Share */}
+                    <button
+                      className="flex flex-col items-center gap-2 group"
+                      onClick={async () => {
+                        if (navigator.share) {
+                          try {
+                            await navigator.share({
+                              title: 'DeciMindAI Chat',
+                              text: 'Check out this conversation!',
+                              url: window.location.href,
+                            });
+                          } catch (err) {
+                            console.log('Error sharing:', err);
+                          }
+                        } else {
+                          toast({ title: "Not Supported", description: "System share is not available on this device.", variant: "destructive" });
+                        }
+                      }}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-blue-600/10 flex items-center justify-center group-hover:bg-blue-600/20 transition-colors">
+                        <Share2 className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground">System</span>
+                    </button>
+
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
           </header>
 
 
 
-          <div className="flex flex-1 overflow-hidden relative">
-            <div className={cn("flex-1 overflow-y-auto min-w-0 transition-all duration-300")}>
+          <div className="flex flex-1 overflow-hidden relative min-h-0 max-h-full">
+            <div className={cn("flex-1 overflow-y-auto min-w-0 transition-all duration-300 custom-scrollbar")}>
               {isEmpty ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <WelcomeAnimation />
@@ -780,8 +1171,29 @@ function PageContent({ chatId }: { chatId: string }) {
                             : "w-full pl-0 max-w-full"
                           }
                         >
+                          {msg.images && msg.images.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {msg.images.map((img, i) => (
+                                <div key={i} className="relative rounded-lg overflow-hidden border border-border/50 max-w-full">
+                                  <img src={img} alt="Uploaded attachment" className="max-h-60 object-contain rounded-lg" />
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           {msg.role === 'assistant' ? (
-                            msg.isThinkResponse ? (
+                            msg.isStudyResponse ? (
+                              <SmartNotes content={msg.content} />
+                            ) : msg.isPptResponse && msg.pptData ? (
+                              <div className="flex flex-col gap-2">
+                                <AssistantMessage content={msg.content} onViewCode={handleViewCode} isNewMessage={msg.shouldAnimate} />
+                                <PptPreview initialData={msg.pptData} topic={msg.content} />
+                              </div>
+                            ) : msg.isQuizResponse && msg.quizData ? (
+                              <div className="flex flex-col gap-4">
+                                <AssistantMessage content={msg.content} onViewCode={handleViewCode} isNewMessage={msg.shouldAnimate} />
+                                <QuizViewer data={msg.quizData} topic={msg.content} />
+                              </div>
+                            ) : msg.isThinkResponse ? (
                               <ThinkResponse>
                                 <AssistantMessage content={msg.content} onViewCode={handleViewCode} isNewMessage={msg.shouldAnimate} />
                               </ThinkResponse>
@@ -871,22 +1283,25 @@ function PageContent({ chatId }: { chatId: string }) {
             </div>
 
           </div>
-          <footer className="p-2 md:p-4 bg-transparent w-full max-w-4xl mx-auto">
+          <footer className="p-2 md:p-4 bg-background/95 backdrop-blur-md border-t border-border/40 w-full max-w-4xl mx-auto flex-shrink-0 relative z-30">
             <PromptInputBox
               onSend={handleSendMessage}
               isLoading={isPending}
               placeholder="Message DeciMind..."
-              className="bg-background border-border"
+              className="border-border shadow-2xl shadow-primary/5"
             />
           </footer>
         </main>
 
         {/* Custom Resize Handle + Code Panel */}
-        {activeCode && !isMobile && (
+        {activeCode && (
           <>
-            {/* Resize Handle */}
+            {/* Resize Handle - Desktop Only */}
             <div
-              className="w-1 bg-border hover:bg-primary/70 active:bg-primary transition-colors relative group cursor-col-resize select-none flex-shrink-0"
+              className={cn(
+                "w-1 bg-border hover:bg-primary/70 active:bg-primary transition-colors relative group cursor-col-resize select-none flex-shrink-0 hidden md:block",
+                isDragging && "bg-primary"
+              )}
               onMouseDown={startResizing}
               title="Drag to resize"
             >
@@ -899,11 +1314,14 @@ function PageContent({ chatId }: { chatId: string }) {
 
             {/* Code Panel */}
             <div
-              className="bg-background/95 backdrop-blur border-l flex-shrink-0"
-              style={{
+              className={cn(
+                "bg-background border-l flex-shrink-0",
+                "fixed inset-0 z-[100] w-full h-full md:static md:w-auto md:h-auto md:inset-auto md:z-0"
+              )}
+              style={!isMobile ? {
                 width: `${panelWidth}%`,
                 transition: isResizingRef.current ? 'none' : 'width 0.2s ease-out'
-              }}
+              } : {}}
             >
               <div className="flex flex-col h-full w-full min-w-[320px]">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-10">

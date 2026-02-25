@@ -236,19 +236,20 @@ export const CodeBlock = ({
                 language={language}
                 style={vscDarkPlus}
                 showLineNumbers
-                wrapLines
+                wrapLines={true}
                 customStyle={{
                   margin: 0,
                   padding: "1rem",
                   backgroundColor: "#0d1117",
                   width: "100%",
-                  overflowX: "auto",
+                  maxWidth: "100%",
                 }}
                 codeTagProps={{
                   style: {
                     fontFamily: "inherit",
                     whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
+                    wordBreak: "break-all",
+                    overflowWrap: "anywhere"
                   },
                 }}
                 lineNumberStyle={{

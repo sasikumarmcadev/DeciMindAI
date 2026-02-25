@@ -71,12 +71,12 @@ function parseMarkdown(text: string): Block[] {
         }
 
         // Lists
-        const isUl = trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ');
+        const isUl = trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ') || trimmedLine.startsWith('+ ');
         const isOl = /^\d+\.\s/.test(trimmedLine);
 
         if (isUl || isOl) {
             const type = isUl ? 'ul' : 'ol';
-            const content = trimmedLine.replace(/^[-*]\s|^\d+\.\s/, '');
+            const content = trimmedLine.replace(/^[-*+]\s|^\d+\.\s/, '');
 
             if (currentBlock && currentBlock.type === type) {
                 currentBlock.content.push(content);

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"
+import { ClientSideToaster } from "@/components/client-side-toaster";
 import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Provider as BalancerProvider } from 'react-wrap-balancer';
+import ClickSpark from '@/components/ui/click-spark';
 
 export const metadata: Metadata = {
   title: 'DeciMind',
@@ -35,10 +36,18 @@ export default function RootLayout({
         >
           <AuthProvider>
             <BalancerProvider>
-              {children}
+              <ClickSpark
+                sparkColor='#fff'
+                sparkSize={10}
+                sparkRadius={15}
+                sparkCount={8}
+                duration={400}
+              >
+                {children}
+              </ClickSpark>
             </BalancerProvider>
           </AuthProvider>
-          <Toaster />
+          <ClientSideToaster />
         </ThemeProvider>
       </body>
     </html>

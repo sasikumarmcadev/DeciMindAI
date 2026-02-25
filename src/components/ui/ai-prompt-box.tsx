@@ -1,7 +1,7 @@
 'use client';
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode } from "lucide-react";
+import { ArrowUp, Paperclip, Square, X, FolderCode, GraduationCap, Presentation, FileQuestion } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
@@ -82,73 +82,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 Button.displayName = "Button";
-
-// VoiceRecorder Component
-interface VoiceRecorderProps {
-  isRecording: boolean;
-  onStartRecording: () => void;
-  onStopRecording: (duration: number) => void;
-  visualizerBars?: number;
-}
-const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
-  isRecording,
-  onStartRecording,
-  onStopRecording,
-  visualizerBars = 32,
-}) => {
-  const [time, setTime] = React.useState(0);
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  React.useEffect(() => {
-    if (isRecording) {
-      onStartRecording();
-      timerRef.current = setInterval(() => setTime((t) => t + 1), 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      onStopRecording(time);
-      setTime(0);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isRecording, time, onStartRecording, onStopRecording]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center w-full transition-all duration-300 py-3",
-        isRecording ? "opacity-100" : "opacity-0 h-0"
-      )}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-        <span className="font-mono text-sm text-foreground/80">{formatTime(time)}</span>
-      </div>
-      <div className="w-full h-10 flex items-center justify-center gap-0.5 px-4">
-        {[...Array(visualizerBars)].map((_, i) => (
-          <div
-            key={i}
-            className="w-0.5 rounded-full bg-foreground/50 animate-pulse"
-            style={{
-              height: `${Math.max(15, Math.random() * 100)}%`,
-              animationDelay: `${i * 0.05}s`,
-              animationDuration: `${0.5 + Math.random() * 0.5}s`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // ImageViewDialog Component
 interface ImageViewDialogProps {
@@ -369,23 +302,79 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   const [files, setFiles] = React.useState<File[]>([]);
   const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({});
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
-  const [isRecording, setIsRecording] = React.useState(false);
-  const [showSearch, setShowSearch] = React.useState(false);
-  const [showThink, setShowThink] = React.useState(false);
+
+  const [showStudy, setShowStudy] = React.useState(false);
+  const [showPpt, setShowPpt] = React.useState(false);
+  const [showQuiz, setShowQuiz] = React.useState(false);
+  const [activeSuggestions, setActiveSuggestions] = React.useState<string[]>([]);
+  const [hasSubmitted, setHasSubmitted] = React.useState(false);
+  const isGeneratingPpt = false; // Assuming this was just a placeholder or managed elsewhere, but keeping the state for logic
+
+  const MODE_SUGGESTIONS_POOL = {
+    study: [
+      "React Hooks & State", "DOM Manipulation", "Python List Comprehensions", "SQL Joins & Indexing",
+      "Binary Search Trees", "TCP/IP Model Layers", "JWT Authentication", "Memory Management in C",
+      "CSS Flexbox & Grid", "Async/Await in JS", "Git Branching Models"
+    ],
+    ppt: [
+      "Microservices Architecture", "Digital Transformation", "Cloud Native Trends", "UI/UX Design Patterns",
+      "Agile vs Waterfall", "Docker & Kubernetes", "Cybersecurity Best Practices", "Web Accessibility (WCAG)",
+      "System Design Scalability", "DevOps Pipeline setup"
+    ],
+    quiz: [
+      "Data Structures & Algos", "JavaScript Closures", "CSS Specificity Rules", "React Lifecycle Methods",
+      "HTTP Status Codes", "Big O Time Complexity", "Linux Terminal Commands", "Database Normalization",
+      "REST API Principles", "Binary vs Hexadecimal"
+    ]
+  };
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
   const promptBoxRef = React.useRef<HTMLDivElement>(null);
 
+  // Restore mode from localStorage on mount
+  React.useEffect(() => {
+    const savedMode = localStorage.getItem("decimind-prompt-mode");
+    if (savedMode === "study") setShowStudy(true);
+    else if (savedMode === "ppt") setShowPpt(true);
+    else if (savedMode === "quiz") setShowQuiz(true);
+  }, []);
+
   const handleToggleChange = (value: string) => {
-    if (value === "search") {
-      setShowSearch((prev) => !prev);
-      setShowThink(false);
-    } else if (value === "think") {
-      setShowThink((prev) => !prev);
-      setShowSearch(false);
+    if (value === "study") {
+      setShowStudy((prev) => !prev);
+      setShowPpt(false);
+      setShowQuiz(false);
+    } else if (value === "ppt") {
+      setShowPpt((prev) => !prev);
+      setShowStudy(false);
+      setShowQuiz(false);
+    } else if (value === "quiz") {
+      setShowQuiz((prev) => !prev);
+      setShowStudy(false);
+      setShowPpt(false);
     }
   };
 
+  // Effect to sync state to localStorage whenever it changes
+  React.useEffect(() => {
+    if (showStudy) localStorage.setItem("decimind-prompt-mode", "study");
+    else if (showPpt) localStorage.setItem("decimind-prompt-mode", "ppt");
+    else if (showQuiz) localStorage.setItem("decimind-prompt-mode", "quiz");
+    else localStorage.removeItem("decimind-prompt-mode");
+
+    // Randomize suggestions on mode change
+    const mode = showStudy ? 'study' : showPpt ? 'ppt' : showQuiz ? 'quiz' : null;
+    if (mode) {
+      const pool = MODE_SUGGESTIONS_POOL[mode];
+      const shuffled = [...pool].sort(() => 0.5 - Math.random());
+      setActiveSuggestions(shuffled.slice(0, 4));
+    } else {
+      setActiveSuggestions([]);
+    }
+  }, [showStudy, showPpt, showQuiz]);
+
   const hasContent = input.trim() !== "" || files.length > 0;
+
+
 
   const processFile = (file: File) => {
     // You can add logic here to restrict certain file types if needed
@@ -400,7 +389,11 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
     // Only generate preview for images
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
-      reader.onload = (e) => setFilePreviews((prev) => ({ ...prev, [file.name]: e.target?.result as string }));
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        setFilePreviews((prev) => ({ ...prev, [file.name]: dataUrl }));
+
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -432,9 +425,11 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
         delete newPreviews[fileToRemove.name];
         return newPreviews;
       });
+
     }
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
+  const hasImagePreviews = Object.keys(filePreviews).length > 0;
 
   const openImageModal = (imageUrl: string) => setSelectedImage(imageUrl);
 
@@ -461,22 +456,16 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   const handleSubmit = () => {
     if (input.trim() || files.length > 0) {
       let messagePrefix = "";
-      if (showSearch) messagePrefix = "[Search: ";
-      else if (showThink) messagePrefix = "[Think: ";
+      if (showPpt) messagePrefix = "[PPT: ";
+      else if (showStudy) messagePrefix = "[Study: ";
+      else if (showQuiz) messagePrefix = "[Quiz: ";
       const formattedInput = messagePrefix ? `${messagePrefix}${input}]` : input;
       onSend(formattedInput, files);
+      setHasSubmitted(true);
       setInput("");
       setFiles([]);
       setFilePreviews({});
     }
-  };
-
-  const handleStartRecording = () => console.log("Started recording");
-
-  const handleStopRecording = (duration: number) => {
-    console.log(`Stopped recording after ${duration} seconds`);
-    setIsRecording(false);
-    onSend(`[Voice message - ${duration} seconds]`, []);
   };
 
   return (
@@ -484,92 +473,106 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
       <PromptInput
         value={input}
         onValueChange={setInput}
-        isLoading={isLoading}
+        isLoading={isLoading || isGeneratingPpt}
         onSubmit={handleSubmit}
         className={cn(
           "w-full transition-all duration-300 ease-in-out",
-          isRecording && "border-red-500/70",
           className
         )}
-        disabled={isLoading || isRecording}
+        disabled={isLoading || isGeneratingPpt}
         ref={ref || promptBoxRef}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {files.length > 0 && !isRecording && (
-          <div className="flex flex-wrap gap-2 p-0 pb-1 transition-all duration-300">
-            {files.map((file, index) => (
-              <div key={index} className="relative group">
-                {file.type.startsWith("image/") && filePreviews[file.name] ? (
-                  <div
-                    className="w-14 h-14 md:w-16 md:h-16 rounded-lg md:rounded-xl overflow-hidden cursor-pointer transition-all duration-300 border border-border"
-                    onClick={() => openImageModal(filePreviews[file.name])}
+        {files.length > 0 && (
+          <>
+            <div className="flex flex-wrap gap-2 p-0 pb-1 transition-all duration-300">
+              {files.map((file, index) => (
+                <div key={index} className="relative group">
+                  {file.type.startsWith("image/") && filePreviews[file.name] ? (
+                    <div
+                      className="w-14 h-14 md:w-16 md:h-16 rounded-lg md:rounded-xl overflow-hidden cursor-pointer transition-all duration-300 border border-border"
+                      onClick={() => openImageModal(filePreviews[file.name])}
+                    >
+                      <img
+                        src={filePreviews[file.name]}
+                        alt={file.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg md:rounded-xl bg-muted flex flex-col items-center justify-center border border-border p-1">
+                      <FolderCode className="h-6 w-6 text-muted-foreground mb-1" />
+                      <span className="text-[8px] text-muted-foreground truncate w-full text-center">{file.name.split('.').pop()}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFile(index);
+                    }}
+                    className="absolute -top-1.5 -right-1.5 rounded-full bg-background border shadow-sm p-0.5 opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
                   >
-                    <img
-                      src={filePreviews[file.name]}
-                      alt={file.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg md:rounded-xl bg-muted flex flex-col items-center justify-center border border-border p-1">
-                    <FolderCode className="h-6 w-6 text-muted-foreground mb-1" />
-                    <span className="text-[8px] text-muted-foreground truncate w-full text-center">{file.name.split('.').pop()}</span>
-                  </div>
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveFile(index);
-                  }}
-                  className="absolute -top-1.5 -right-1.5 rounded-full bg-background border shadow-sm p-0.5 opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+
+          </>
         )}
 
         <div
-          className={cn(
-            "transition-all duration-300",
-            isRecording ? "h-0 overflow-hidden opacity-0" : "opacity-100"
-          )}
+          className="transition-all duration-300"
         >
+          <AnimatePresence>
+            {(showStudy || showPpt || showQuiz) && input.trim() === "" && !hasSubmitted && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                className="flex flex-wrap gap-2 px-3 py-2"
+              >
+                <div className="w-full text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1 opacity-50">
+                  Suggested Topics
+                </div>
+                {activeSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => setInput(suggestion)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
           <PromptInputTextarea
             placeholder={
-              showSearch
-                ? "Search the web..."
-                : showThink
-                  ? "Think deeply..."
-                  : placeholder
+              showStudy
+                ? "Upload content for smart notes..."
+                : showPpt
+                  ? "Enter topic to generate PPT..."
+                  : showQuiz
+                    ? "Enter topic to generate Quiz..."
+                    : placeholder
             }
             className="text-base md:text-sm"
           />
         </div>
 
-        {isRecording && (
-          <VoiceRecorder
-            isRecording={isRecording}
-            onStartRecording={handleStartRecording}
-            onStopRecording={handleStopRecording}
-          />
-        )}
-
         <PromptInputActions className="responsive-prompt-actions flex items-center justify-between gap-1 md:gap-2 p-0 pt-1 md:pt-2">
           <div
-            className={cn(
-              "flex items-center gap-0.5 md:gap-1 transition-opacity duration-300 w-full md:w-auto",
-              isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible"
-            )}
+            className="flex items-center gap-0.5 md:gap-1 transition-opacity duration-300 w-full md:w-auto"
           >
             <PromptInputAction tooltip="Upload file">
               <button
                 onClick={() => uploadInputRef.current?.click()}
                 className="flex h-7 w-7 md:h-8 md:w-8 text-muted-foreground cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-accent hover:text-accent-foreground"
-                disabled={isRecording}
+                disabled={isLoading}
               >
                 <Paperclip className="h-4 w-4 md:h-5 md:w-5 transition-colors" />
                 <input
@@ -590,33 +593,33 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
             <div className="flex items-center flex-1 justify-start md:justify-center">
               <button
                 type="button"
-                onClick={() => handleToggleChange("search")}
+                onClick={() => handleToggleChange("study")}
                 className={cn(
                   "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-7 md:h-8",
-                  showSearch
-                    ? "bg-[#1EAEDB]/15 border-[#1EAEDB] text-[#1EAEDB]"
+                  showStudy
+                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-500"
                     : "bg-transparent border-transparent text-muted-foreground hover:text-accent-foreground"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                   <motion.div
-                    animate={{ rotate: showSearch ? 360 : 0, scale: showSearch ? 1.1 : 1 }}
-                    whileHover={{ rotate: showSearch ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
+                    animate={{ rotate: showStudy ? 360 : 0, scale: showStudy ? 1.1 : 1 }}
+                    whileHover={{ rotate: showStudy ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
                     transition={{ type: "spring", stiffness: 260, damping: 25 }}
                   >
-                    <Globe className={cn("w-4 h-4", showSearch ? "text-[#1EAEDB]" : "text-inherit")} />
+                    <GraduationCap className={cn("w-4 h-4", showStudy ? "text-emerald-500" : "text-inherit")} />
                   </motion.div>
                 </div>
                 <AnimatePresence>
-                  {showSearch && (
+                  {showStudy && (
                     <motion.span
                       initial={{ width: 0, opacity: 0 }}
                       animate={{ width: "auto", opacity: 1 }}
                       exit={{ width: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="text-xs overflow-hidden whitespace-nowrap text-[#1EAEDB] flex-shrink-0"
+                      className="text-xs overflow-hidden whitespace-nowrap text-emerald-500 flex-shrink-0"
                     >
-                      Search
+                      Study
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -626,33 +629,69 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
 
               <button
                 type="button"
-                onClick={() => handleToggleChange("think")}
+                onClick={() => handleToggleChange("ppt")}
                 className={cn(
                   "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-7 md:h-8",
-                  showThink
-                    ? "bg-[#8B5CF6]/15 border-[#8B5CF6] text-[#8B5CF6]"
+                  showPpt
+                    ? "bg-orange-500/15 border-orange-500 text-orange-500"
                     : "bg-transparent border-transparent text-muted-foreground hover:text-accent-foreground"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                   <motion.div
-                    animate={{ rotate: showThink ? 360 : 0, scale: showThink ? 1.1 : 1 }}
-                    whileHover={{ rotate: showThink ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
+                    animate={{ rotate: showPpt ? 360 : 0, scale: showPpt ? 1.1 : 1 }}
+                    whileHover={{ rotate: showPpt ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
                     transition={{ type: "spring", stiffness: 260, damping: 25 }}
                   >
-                    <BrainCog className={cn("w-4 h-4", showThink ? "text-[#8B5CF6]" : "text-inherit")} />
+                    <Presentation className={cn("w-4 h-4", showPpt ? "text-orange-500" : "text-inherit")} />
                   </motion.div>
                 </div>
                 <AnimatePresence>
-                  {showThink && (
+                  {showPpt && (
                     <motion.span
                       initial={{ width: 0, opacity: 0 }}
                       animate={{ width: "auto", opacity: 1 }}
                       exit={{ width: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="text-xs overflow-hidden whitespace-nowrap text-[#8B5CF6] flex-shrink-0"
+                      className="text-xs overflow-hidden whitespace-nowrap text-orange-500 flex-shrink-0"
                     >
-                      Think
+                      PPT
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+
+              <CustomDivider />
+
+              <button
+                type="button"
+                onClick={() => handleToggleChange("quiz")}
+                className={cn(
+                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-7 md:h-8",
+                  showQuiz
+                    ? "bg-blue-500/15 border-blue-500 text-blue-500"
+                    : "bg-transparent border-transparent text-muted-foreground hover:text-accent-foreground"
+                )}
+              >
+                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                  <motion.div
+                    animate={{ rotate: showQuiz ? 360 : 0, scale: showQuiz ? 1.1 : 1 }}
+                    whileHover={{ rotate: showQuiz ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
+                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
+                  >
+                    <FileQuestion className={cn("w-4 h-4", showQuiz ? "text-blue-500" : "text-inherit")} />
+                  </motion.div>
+                </div>
+                <AnimatePresence>
+                  {showQuiz && (
+                    <motion.span
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: "auto", opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-xs overflow-hidden whitespace-nowrap text-blue-500 flex-shrink-0"
+                    >
+                      Quiz
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -662,13 +701,11 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
 
           <PromptInputAction
             tooltip={
-              isLoading
-                ? "Stop generation"
-                : isRecording
-                  ? "Stop recording"
-                  : hasContent
-                    ? "Send message"
-                    : "Voice message"
+              isLoading || isGeneratingPpt
+                ? "Generating..."
+                : hasContent
+                  ? "Send message"
+                  : "Enter a message"
             }
           >
             <Button
@@ -676,27 +713,19 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               size="icon"
               className={cn(
                 "h-7 w-7 md:h-8 md:w-8 rounded-full transition-all duration-200 flex-shrink-0",
-                isRecording
-                  ? "bg-transparent hover:bg-accent text-red-500 hover:text-red-400"
-                  : hasContent
-                    ? "bg-primary hover:bg-primary/80 text-primary-foreground"
-                    : "bg-transparent hover:bg-accent text-muted-foreground hover:text-accent-foreground"
+                hasContent
+                  ? "bg-primary hover:bg-primary/80 text-primary-foreground"
+                  : "bg-transparent hover:bg-accent text-muted-foreground hover:text-accent-foreground"
               )}
               onClick={() => {
-                if (isRecording) setIsRecording(false);
-                else if (hasContent) handleSubmit();
-                else setIsRecording(true);
+                if (hasContent && (!isLoading && !isGeneratingPpt)) handleSubmit();
               }}
-              disabled={isLoading && !hasContent}
+              disabled={!hasContent || (isLoading || isGeneratingPpt)}
             >
-              {isLoading ? (
+              {isLoading || isGeneratingPpt ? (
                 <Square className="h-4 w-4 fill-primary-foreground animate-pulse" />
-              ) : isRecording ? (
-                <StopCircle className="h-4 w-4 md:h-5 md:w-5 text-red-500" />
-              ) : hasContent ? (
-                <ArrowUp className="h-4 w-4" />
               ) : (
-                <Mic className="h-4 w-4 md:h-5 md:w-5 transition-colors" />
+                <ArrowUp className="h-4 w-4" />
               )}
             </Button>
           </PromptInputAction>
@@ -708,4 +737,3 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   );
 });
 PromptInputBox.displayName = "PromptInputBox";
-
