@@ -1,8 +1,12 @@
 import Groq from "groq-sdk";
 
 export async function POST(req: Request) {
+    let topic = "";
     try {
-        const { score, total, topic } = await req.json();
+        const body = await req.json();
+        const score = body?.score;
+        const total = body?.total;
+        topic = typeof body?.topic === "string" ? body.topic : "";
 
         if (!process.env.GROQ_API_KEY) {
             return new Response(JSON.stringify({ error: "GROQ_API_KEY is missing" }), { status: 500 });
@@ -42,7 +46,11 @@ Ensure the response is a JSON object with an "analysis" field.
     } catch (error: any) {
         console.error("Quiz Analysis Error:", error);
         return new Response(
-            JSON.stringify({ analysis: "Great attempt! Keep studying to master " + topic + "." }),
+            JSON.stringify({
+                analysis: topic
+                    ? "Great attempt! Keep studying to master " + topic + "."
+                    : "Great attempt! Keep studying to master this topic.",
+            }),
             { status: 200 } // Graceful failure
         );
     }
