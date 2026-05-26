@@ -289,10 +289,10 @@ ${fullUserMessage}
   try {
 
     const completion = await groq.chat.completions.create({
-      model: 'openai/gpt-oss-120b',
+      model: 'llama-3.3-70b-versatile',
       messages: messages as any,
       temperature: 0.7,
-      max_tokens: 32768,
+      max_tokens: 4096,
       top_p: 1,
       stream: true,
       response_format: (isNewChat || isStudyMode) ? { type: 'json_object' } : undefined,

@@ -93,7 +93,7 @@ function AssistantMessage({ content, onViewCode, isNewMessage = false }: { conte
   );
 }
 
-export const Logo = ({ isOpen }: { isOpen?: boolean }) => {
+const Logo = ({ isOpen }: { isOpen?: boolean }) => {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -155,7 +155,7 @@ function WelcomeAnimation() {
 
   return (
     <div className="w-full h-full text-center flex flex-col items-center justify-center font-sans p-4 md:p-6 relative overflow-hidden">
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+      <div className="fixed inset-0 w-full h-full z-0 pointer-events-none">
         <LightRays
           raysOrigin="top-center"
           raysColor="#ffffff"

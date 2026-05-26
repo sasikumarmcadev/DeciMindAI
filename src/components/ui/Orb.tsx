@@ -1,8 +1,20 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, Program, Mesh, Triangle, Vec3 } from 'ogl';
+import { Renderer, Program, Mesh, Triangle } from 'ogl';
 
-export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = true, forceHoverState = false }) {
-  const ctnDom = useRef(null);
+type OrbProps = {
+  hue?: number;
+  hoverIntensity?: number;
+  rotateOnHover?: boolean;
+  forceHoverState?: boolean;
+};
+
+export default function Orb({
+  hue = 0,
+  hoverIntensity = 0.2,
+  rotateOnHover = true,
+  forceHoverState = false
+}: OrbProps) {
+  const ctnDom = useRef<HTMLDivElement | null>(null);
 
   const vert = /* glsl */ `
     precision highp float;
@@ -166,25 +178,31 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
     const container = ctnDom.current;
     if (!container) return;
 
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+    const renderer = new Renderer({ alpha: true });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
-    container.appendChild(gl.canvas);
+    const canvas = gl.canvas as HTMLCanvasElement;
+    container.appendChild(canvas);
 
     const geometry = new Triangle(gl);
+    const resolution = new Float32Array(3);
+    resolution[0] = canvas.width;
+    resolution[1] = canvas.height;
+    resolution[2] = canvas.width / Math.max(canvas.height, 1);
+
+    const uniforms = {
+      iTime: { value: 0 },
+      iResolution: { value: resolution },
+      hue: { value: hue },
+      hover: { value: 0 },
+      rot: { value: 0 },
+      hoverIntensity: { value: hoverIntensity }
+    };
+
     const program = new Program(gl, {
       vertex: vert,
       fragment: frag,
-      uniforms: {
-        iTime: { value: 0 },
-        iResolution: {
-          value: new Vec3(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.width)
-        },
-        hue: { value: hue },
-        hover: { value: 0 },
-        rot: { value: 0 },
-        hoverIntensity: { value: hoverIntensity }
-      }
+      uniforms
     });
 
     const mesh = new Mesh(gl, { geometry, program });
@@ -195,9 +213,11 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width * dpr, height * dpr);
-      gl.canvas.style.width = width + 'px';
-      gl.canvas.style.height = height + 'px';
-      program.uniforms.iResolution.value.set(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      resolution[0] = canvas.width;
+      resolution[1] = canvas.height;
+      resolution[2] = canvas.width / Math.max(canvas.height, 1);
     }
     window.addEventListener('resize', resize);
     resize();
@@ -207,7 +227,7 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
     let currentRot = 0;
     const rotationSpeed = 0.3;
 
-    const handleMouseMove = e => {
+    const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -233,22 +253,22 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
     container.addEventListener('mousemove', handleMouseMove);
     container.addEventListener('mouseleave', handleMouseLeave);
 
-    let rafId;
-    const update = t => {
+    let rafId = 0;
+    const update = (t: number) => {
       rafId = requestAnimationFrame(update);
       const dt = (t - lastTime) * 0.001;
       lastTime = t;
-      program.uniforms.iTime.value = t * 0.001;
-      program.uniforms.hue.value = hue;
-      program.uniforms.hoverIntensity.value = hoverIntensity;
+      uniforms.iTime.value = t * 0.001;
+      uniforms.hue.value = hue;
+      uniforms.hoverIntensity.value = hoverIntensity;
 
       const effectiveHover = forceHoverState ? 1 : targetHover;
-      program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * 0.1;
+      uniforms.hover.value += (effectiveHover - uniforms.hover.value) * 0.1;
 
       if (rotateOnHover && effectiveHover > 0.5) {
         currentRot += dt * rotationSpeed;
       }
-      program.uniforms.rot.value = currentRot;
+      uniforms.rot.value = currentRot;
 
       renderer.render({ scene: mesh });
     };
@@ -259,7 +279,9 @@ export default function Orb({ hue = 0, hoverIntensity = 0.2, rotateOnHover = tru
       window.removeEventListener('resize', resize);
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
-      container.removeChild(gl.canvas);
+      if (canvas.parentElement === container) {
+        container.removeChild(canvas);
+      }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
